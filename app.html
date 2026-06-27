@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3B5BDB">
+    <meta name="description" content="Traccia le tue ore straordinarie con selezione automatica del tipo di lavoro">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Straordinari">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%233B5BDB' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>S</text></svg>">
+    <title>Straordinari</title>
+    <style>
+        :root {
+            /* Palette */
+            --blue:    #3B5BDB;
+            --blue-2:  #5C7CFA;
+            --green:   #2E7D32;
+            --green-bg:#EBFBEE;
+            --orange:  #E67700;
+            --orange-bg:#FFF4E6;
+            --ink:     #14152A;
+            --muted:   #8A8D9F;
+            --line:    rgba(20,21,42,0.06);
+
+            /* Sistema ombre stratificate */
+            --sh-xs:  0 1px 2px rgba(20,21,42,0.05);
+            --sh-sm:  0 2px 4px rgba(20,21,42,0.04), 0 4px 12px rgba(20,21,42,0.05);
+            --sh-md:  0 4px 8px rgba(20,21,42,0.05), 0 10px 24px rgba(20,21,42,0.07);
+            --sh-lg:  0 8px 16px rgba(20,21,42,0.06), 0 20px 48px rgba(20,21,42,0.10);
+            --sh-blue:0 8px 18px rgba(59,91,219,0.30), 0 16px 40px rgba(59,91,219,0.22);
+            --sh-fab: 0 6px 14px rgba(59,91,219,0.40), 0 12px 28px rgba(59,91,219,0.32);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at 30% 20%, #232347 0%, #16162b 55%, #0e0e1d 100%);
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 375px; height: 812px;
+            background: linear-gradient(160deg, #1c1c1c 0%, #050505 100%);
+            border-radius: 54px; padding: 11px;
+            box-shadow:
+                0 50px 120px rgba(0,0,0,0.65),
+                0 20px 50px rgba(0,0,0,0.45),
+                inset 0 0 0 1.5px rgba(255,255,255,0.10),
+                inset 0 1px 1px rgba(255,255,255,0.18);
+            display: flex; flex-direction: column;
+        }
+
+        .phone-inner {
+            flex: 1; position: relative;
+            background:
+                radial-gradient(circle at 50% -5%, #FFFFFF 0%, #F4F5FA 30%, #EEF0F6 100%);
+            border-radius: 44px;
+            overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+        }
+
+        .status-bar {
+            padding: 14px 28px 2px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 14px; font-weight: 700; flex-shrink: 0; color: var(--ink);
+        }
+
+        .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+        .tab-content::-webkit-scrollbar { display: none; }
+        .tab-panel { display: none; padding-bottom: 8px; }
+        .tab-panel.active { display: block; animation: fadeIn 0.32s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Bottom Nav ─────────────────────── */
+        .bottom-nav {
+            background: rgba(255,255,255,0.82);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-top: 0.5px solid rgba(20,21,42,0.07);
+            display: flex; align-items: center; justify-content: space-around;
+            padding: 9px 0 24px; flex-shrink: 0;
+            box-shadow: 0 -6px 24px rgba(20,21,42,0.06);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            cursor: pointer; flex: 1; border: none; background: none; padding: 4px 0;
+            transition: transform 0.15s ease;
+        }
+        .nav-item:active { transform: scale(0.9); }
+        .nav-icon { font-size: 21px; line-height: 1; filter: grayscale(0.4) opacity(0.55); transition: filter 0.2s ease, transform 0.2s ease; }
+        .nav-label { font-size: 10px; color: var(--muted); font-weight: 600; transition: color 0.2s ease; }
+        .nav-item.active .nav-icon  { filter: none; transform: translateY(-1px); }
+        .nav-item.active .nav-label { color: var(--blue); }
+        .nav-fab {
+            width: 60px; height: 60px;
+            background: linear-gradient(150deg, #5C7CFA 0%, #3B5BDB 100%);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: var(--sh-fab), inset 0 1px 1px rgba(255,255,255,0.4);
+            flex-shrink: 0; margin-top: -26px; border: 3px solid rgba(255,255,255,0.55);
+            color: white; font-size: 30px; font-weight: 300; line-height: 1;
+            transition: transform 0.18s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.18s ease;
+        }
+        .nav-fab:hover  { transform: translateY(-2px) scale(1.04); }
+        .nav-fab:active { transform: scale(0.9); box-shadow: 0 3px 10px rgba(59,91,219,0.45); }
+
+        /* ── HOME ───────────────────────────── */
+        .home-header {
+            padding: 12px 20px 14px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .home-greeting h1 { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.6px; }
+        .home-greeting p  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+        .bell-btn {
+            width: 42px; height: 42px; background: #fff; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255,255,255,0.9);
+            position: relative; cursor: pointer; border: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .bell-btn:hover  { transform: translateY(-1px); box-shadow: var(--sh-md); }
+        .bell-btn:active { transform: scale(0.94); }
+        .bell-dot {
+            width: 9px; height: 9px; background: var(--blue); border-radius: 50%;
+            position: absolute; top: 7px; right: 7px; border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(59,91,219,0.25);
+        }
+
+        /* Hero */
+        .hero-card {
+            position: relative; overflow: hidden;
+            margin: 0 20px 18px;
+            background: linear-gradient(135deg, #4262E0 0%, #5C7CFA 55%, #6E8BFF 100%);
+            border-radius: 26px; padding: 24px 22px 22px;
+            color: #fff; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--sh-blue), inset 0 1px 1px rgba(255,255,255,0.25);
+        }
+        .hero-card::before {
+            content: ''; position: absolute; top: -40%; right: -20%;
+            width: 220px; height: 220px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.22), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-card::after {
+            content: ''; position: absolute; bottom: -55%; left: -15%;
+            width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-left { position: relative; z-index: 1; }
+        .hero-left h3 { font-size: 13px; font-weight: 500; opacity: 0.85; margin-bottom: 8px; line-height: 1.4; }
+        .hero-hours { font-size: 42px; font-weight: 800; letter-spacing: -2px; margin-bottom: 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .hero-trend { font-size: 12px; opacity: 0.8; }
+        .hero-trend b { color: #B2F2BB; font-weight: 700; }
+        .circle-wrap { text-align: center; position: relative; z-index: 1; }
+        .circle-progress { position: relative; width: 92px; height: 92px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.18)); }
+        .circle-progress svg { transform: rotate(-90deg); }
+        #progressCircle { transition: stroke-dashoffset 0.9s cubic-bezier(0.34,1,0.45,1); }
+        .circle-center {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%); text-align: center; line-height: 1.2;
+        }
+        .circle-pct  { font-size: 20px; font-weight: 800; color: #fff; display: block; }
+        .circle-sub  { font-size: 9px; color: rgba(255,255,255,0.78); display: block; margin-top: 1px; }
+        .hero-limit  { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 6px; }
+
+        /* Card Oggi in Home */
+        .today-home-card {
+            background: #fff; border-radius: 22px; margin: 0 20px 18px;
+            padding: 18px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        .today-home-top {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+        }
+        .today-home-lbl { font-size: 11px; font-weight: 800; color: var(--blue); text-transform: uppercase; letter-spacing: 0.8px; }
+        .today-home-date { font-size: 11px; color: var(--muted); font-weight: 500; }
+        .today-time-row {
+            display: flex; align-items: center; gap: 0; margin-bottom: 14px;
+            background: #F7F8FC; border-radius: 16px; padding: 12px 8px;
+            box-shadow: inset 0 1px 3px rgba(20,21,42,0.05);
+        }
+        .today-time-block { flex: 1; text-align: center; }
+        .today-time-l { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+        .today-time-v { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -1px; }
+        .today-time-v.muted { color: #C7CAD8; }
+        .today-sep {
+            font-size: 16px; color: var(--blue); opacity: 0.5; padding: 0 4px;
+            display: flex; align-items: center;
+        }
+        .today-ot-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(135deg, #EBFBEE, #E0F7E5);
+            border-radius: 14px; padding: 12px 16px;
+            box-shadow: inset 0 0 0 1px rgba(46,125,50,0.08);
+        }
+        .today-ot-row.saturday {
+            background: linear-gradient(135deg, #FFF4E6, #FFEBD0);
+            box-shadow: inset 0 0 0 1px rgba(230,119,0,0.10);
+        }
+        .today-ot-lbl { font-size: 12px; color: #5C6270; font-weight: 500; display: flex; align-items: center; }
+        .today-ot-val { font-size: 19px; font-weight: 800; color: var(--green); letter-spacing: -0.5px; }
+        .today-ot-val.saturday { color: var(--orange); }
+        .sat-badge-home {
+            font-size: 10px; font-weight: 700; background: rgba(230,119,0,0.14); color: var(--orange);
+            padding: 2px 8px; border-radius: 20px; margin-left: 6px;
+        }
+        .btn-register-home {
+            width: 100%; background: linear-gradient(135deg, #5C7CFA, #3B5BDB); color: #fff; border: none;
+            border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 700;
+            cursor: pointer; margin-top: 14px; letter-spacing: 0.2px;
+            box-shadow: var(--sh-blue);
+            transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+        }
+        .btn-register-home:hover  { transform: translateY(-1px); box-shadow: var(--sh-blue), 0 4px 12px rgba(59,91,219,0.25); }
+        .btn-register-home:active { transform: scale(0.98); filter: brightness(0.96); }
+        .btn-register-home.update { background: linear-gradient(135deg, #74C0FC, #4DABF7); box-shadow: 0 8px 18px rgba(77,171,247,0.30); }
+
+        /* Recenti */
+        .section-title  { font-size: 17px; font-weight: 800; color: var(--ink); padding: 0 20px; margin-bottom: 12px; letter-spacing: -0.3px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 12px; }
+        .section-link   { font-size: 13px; color: var(--blue); font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+        .section-link:active { opacity: 0.6; }
+        .entries-card { background: #fff; border-radius: 22px; margin: 0 20px; overflow: hidden; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .entry-row { display: flex; align-items: center; padding: 14px 16px; gap: 12px; border-bottom: 0.5px solid var(--line); transition: background 0.15s ease; }
+        .entry-row:last-child { border-bottom: none; }
+        .entry-row:active { background: #F7F8FC; }
+        .entry-icon-wrap {
+            width: 44px; height: 44px; border-radius: 14px;
+            background: linear-gradient(135deg, #EBFBEE, #DCF5E1);
+            display: flex; align-items: center; justify-content: center; font-size: 19px;
+            flex-shrink: 0; box-shadow: var(--sh-xs), inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .entry-icon-wrap.pending  { background: linear-gradient(135deg, #EDF2FF, #DCE5FF); }
+        .entry-icon-wrap.saturday { background: linear-gradient(135deg, #FFF4E6, #FFE8CC); }
+        .entry-info { flex: 1; min-width: 0; }
+        .entry-name { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-time-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .entry-right { text-align: right; flex-shrink: 0; }
+        .entry-hrs { font-size: 14px; font-weight: 800; color: var(--green); }
+        .entry-hrs.blue { color: var(--blue); }
+        .entry-hrs.orange { color: var(--orange); }
+        .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; margin-top: 4px; }
+        .badge-ok  { background: rgba(46,125,50,0.12); color: var(--green); }
+        .badge-wait{ background: rgba(59,91,219,0.12); color: var(--blue); }
+        .badge-sat { background: rgba(230,119,0,0.14); color: var(--orange); }
+        .chevron { color: #CDD0DC; font-size: 15px; margin-left: 4px; flex-shrink: 0; }
+
+        /* ── CALENDARIO ─────────────────────── */
+        .page-header { padding: 14px 20px 10px; }
+        .page-header h2 { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
+        .page-header p  { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        .cal-card { background: #fff; border-radius: 24px; margin: 8px 20px 16px; padding: 20px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .cal-nav  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .cal-nav-btn {
+            background: #F2F3F9; border: none; border-radius: 50%; width: 36px; height: 36px;
+            cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center;
+            color: var(--ink); box-shadow: var(--sh-xs);
+            transition: transform 0.14s ease, background 0.14s ease;
+        }
+        .cal-nav-btn:hover  { background: #E9EBF4; }
+        .cal-nav-btn:active { transform: scale(0.88); background: #E1E4F0; }
+        .cal-month-lbl { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+        .cal-wday { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 4px 0 8px; }
+        .cal-wday.sat { color: #FAB005; }
+        .cal-wday.sun { color: #FF6B6B; }
+        .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; padding: 2px; transition: transform 0.12s ease; }
+        .cal-day.empty { cursor: default; }
+        .cal-day-n { font-size: 13px; font-weight: 600; color: #3A3D4D; line-height: 1; }
+        .cal-day-h { font-size: 8px; font-weight: 800; color: var(--green); margin-top: 2px; }
+        .cal-day.today     { background: #EDF2FF; box-shadow: inset 0 0 0 1.5px var(--blue); }
+        .cal-day.today .cal-day-n { color: var(--blue); font-weight: 800; }
+        .cal-day.has-data  { background: linear-gradient(135deg, #EBFBEE, #DCF5E1); box-shadow: var(--sh-xs); }
+        .cal-day.has-data .cal-day-n  { color: var(--green); font-weight: 800; }
+        .cal-day.has-sat   { background: linear-gradient(135deg, #FFF4E6, #FFE8CC); box-shadow: var(--sh-xs); }
+        .cal-day.has-sat .cal-day-n   { color: var(--orange); font-weight: 800; }
+        .cal-day.has-sat .cal-day-h   { color: var(--orange); }
+        .cal-day.weekend .cal-day-n   { color: #C7CAD8; }
+
+        .cal-summary-card { background: #fff; border-radius: 24px; margin: 0 20px 16px; padding: 20px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .card-lbl { font-size: 11px; font-weight: 800; color: var(--blue); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--line); }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-lbl { font-size: 13px; color: var(--muted); }
+        .summary-val { font-size: 14px; font-weight: 800; color: var(--ink); }
+        .summary-val.green { color: var(--green); }
+
+        /* ── CRONOLOGIA ─────────────────────── */
+        .crono-list { padding: 4px 20px 16px; }
+        .crono-month-hdr { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 18px 4px 10px; }
+        .crono-row {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            background: #fff; border-radius: 18px; margin-bottom: 10px;
+            box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255,255,255,0.8);
+            transition: transform 0.14s ease, box-shadow 0.14s ease;
+        }
+        .crono-row:active { transform: scale(0.99); box-shadow: var(--sh-xs); }
+        .crono-icon {
+            width: 42px; height: 42px; border-radius: 14px;
+            background: linear-gradient(135deg, #EBFBEE, #DCF5E1);
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            flex-shrink: 0; box-shadow: var(--sh-xs), inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .crono-icon.saturday { background: linear-gradient(135deg, #FFF4E6, #FFE8CC); }
+        .crono-info { flex: 1; min-width: 0; }
+        .crono-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+        .crono-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .crono-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+        .crono-hrs  { font-size: 14px; font-weight: 800; color: var(--green); }
+        .crono-hrs.saturday { color: var(--orange); }
+        .crono-del  {
+            background: #FFF0F0; border: none; color: #FF3B30; font-size: 14px; cursor: pointer;
+            width: 30px; height: 30px; border-radius: 10px; margin: 0; line-height: 1;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            transition: transform 0.14s ease, background 0.14s ease;
+        }
+        .crono-del:hover  { background: #FFE0E0; }
+        .crono-del:active { transform: scale(0.85); }
+
+        /* ── PROFILO ────────────────────────── */
+        .settings-card { background: #fff; border-radius: 24px; margin: 0 20px 16px; overflow: hidden; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 0.5px solid var(--line); cursor: pointer; transition: background 0.15s ease; }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row:active { background: #F7F8FC; }
+        .s-left  { display: flex; align-items: center; gap: 13px; }
+        .s-icon  {
+            font-size: 17px; width: 38px; height: 38px; border-radius: 12px;
+            background: #F2F3F9; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--sh-xs);
+        }
+        .s-label { font-size: 14px; color: var(--ink); font-weight: 600; }
+        .s-val   { font-size: 14px; color: var(--blue); font-weight: 700; }
+        .s-arr   { color: #CDD0DC; font-size: 16px; margin-left: 4px; }
+        .btn-danger {
+            width: calc(100% - 40px); margin: 0 20px 16px;
+            background: #fff; color: #FF3B30; border: none;
+            border-radius: 18px; padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255,255,255,0.8);
+            transition: transform 0.14s ease, background 0.14s ease;
+        }
+        .btn-danger:hover  { background: #FFF5F5; }
+        .btn-danger:active { transform: scale(0.98); }
+
+        /* ── MODALS ─────────────────────────── */
+        .modal-bg {
+            position: absolute; inset: 0; background: rgba(10,11,25,0.45);
+            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+            z-index: 200; display: flex; align-items: flex-end; justify-content: center;
+            animation: bgFade 0.3s ease;
+        }
+        @keyframes bgFade { from { opacity: 0; } to { opacity: 1; } }
+        .modal-bg.hidden { display: none; }
+        .modal-sheet {
+            background: #fff; border-radius: 30px 30px 44px 44px; width: 100%; max-width: 375px;
+            padding: 12px 22px 30px;
+            box-shadow: 0 -10px 40px rgba(10,11,25,0.25);
+            animation: slideUp 0.4s cubic-bezier(0.34,1.4,0.64,1);
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-handle { width: 40px; height: 5px; background: #E1E3EC; border-radius: 3px; margin: 0 auto 18px; }
+        .modal-title  { font-size: 18px; font-weight: 800; color: var(--ink); text-align: center; margin-bottom: 20px; letter-spacing: -0.3px; }
+        .big-input {
+            width: 100%; font-size: 40px; font-weight: 800; text-align: center; border: none;
+            background: #F4F5FA; border-radius: 18px; padding: 18px; color: var(--blue); outline: none;
+            margin-bottom: 18px; box-shadow: inset 0 2px 5px rgba(20,21,42,0.06);
+            transition: box-shadow 0.18s ease;
+        }
+        .big-input:focus { box-shadow: inset 0 0 0 2px rgba(59,91,219,0.4); }
+        .btn-primary {
+            width: 100%; background: linear-gradient(135deg, #5C7CFA, #3B5BDB); color: #fff; border: none;
+            border-radius: 18px; padding: 17px; font-size: 16px; font-weight: 700; cursor: pointer;
+            box-shadow: var(--sh-blue);
+            transition: transform 0.14s ease, filter 0.14s ease;
+        }
+        .btn-primary:hover  { transform: translateY(-1px); }
+        .btn-primary:active { transform: scale(0.98); filter: brightness(0.96); }
+
+        /* ── Time Picker (custom) ───────────── */
+        .time-picker {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: #F4F5FA; border-radius: 22px; padding: 16px 12px; margin-bottom: 16px;
+            box-shadow: inset 0 2px 6px rgba(20,21,42,0.06);
+        }
+        .tp-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .tp-step {
+            width: 56px; height: 34px; border: none; cursor: pointer;
+            background: #fff; color: var(--blue); font-size: 14px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--sh-xs), inset 0 1px 0 rgba(255,255,255,0.8);
+            transition: transform 0.1s ease, background 0.12s ease, box-shadow 0.12s ease;
+            -webkit-user-select: none; user-select: none;
+        }
+        .tp-step:hover  { background: #EDF0FB; box-shadow: var(--sh-sm); }
+        .tp-step:active { transform: scale(0.9); background: #E3E8FA; }
+        .tp-val {
+            font-size: 46px; font-weight: 800; color: var(--blue); letter-spacing: -1px;
+            line-height: 1; min-width: 70px; text-align: center; font-variant-numeric: tabular-nums;
+            transition: transform 0.12s ease;
+        }
+        .tp-val.bump { transform: scale(1.12); }
+        .tp-unit { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: -2px; }
+        .tp-colon { font-size: 40px; font-weight: 800; color: var(--blue); opacity: 0.45; padding-bottom: 22px; }
+        .tp-quick { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+        .tp-chip {
+            border: none; cursor: pointer; background: #F2F3F9; color: #5C6270;
+            font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 20px;
+            box-shadow: var(--sh-xs); transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+        }
+        .tp-chip:hover  { background: #E9EBF4; }
+        .tp-chip:active { transform: scale(0.94); }
+        .tp-chip.active { background: linear-gradient(135deg, #5C7CFA, #3B5BDB); color: #fff; box-shadow: var(--sh-blue); }
+        .tp-note {
+            text-align: center; font-size: 11.5px; color: #7A4E12; font-weight: 500;
+            background: var(--orange-bg); border-radius: 12px; padding: 9px 12px; margin-bottom: 16px;
+        }
+        .tp-note b { color: var(--orange); font-weight: 800; }
+
+        /* Modal Registra (FAB) */
+        .reg-modal-times {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; margin: 8px 0 18px;
+            background: #F7F8FC; border-radius: 18px; padding: 16px 8px;
+            box-shadow: inset 0 1px 3px rgba(20,21,42,0.05);
+        }
+        .reg-time-block { text-align: center; flex: 1; }
+        .reg-time-l { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+        .reg-time-v { font-size: 36px; font-weight: 800; color: var(--ink); letter-spacing: -1px; }
+        .reg-time-v.muted { color: #C7CAD8; }
+        .reg-sep { font-size: 22px; color: var(--blue); opacity: 0.5; padding-top: 18px; }
+        .reg-ot-pill {
+            background: linear-gradient(135deg, #EBFBEE, #E0F7E5); border-radius: 18px;
+            padding: 16px; text-align: center; margin-bottom: 18px;
+            box-shadow: inset 0 0 0 1px rgba(46,125,50,0.10);
+        }
+        .reg-ot-pill.saturday {
+            background: linear-gradient(135deg, #FFF4E6, #FFEBD0);
+            box-shadow: inset 0 0 0 1px rgba(230,119,0,0.12);
+        }
+        .reg-ot-l { font-size: 12px; color: #5C6270; margin-bottom: 4px; font-weight: 500; }
+        .reg-ot-v { font-size: 32px; font-weight: 800; color: var(--green); letter-spacing: -1px; }
+        .reg-ot-v.saturday { color: var(--orange); }
+
+        /* ── TOAST ──────────────────────────── */
+        .toast {
+            position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%) translateY(8px);
+            background: rgba(20,21,42,0.92); color: #fff; padding: 12px 22px; border-radius: 26px;
+            font-size: 13px; font-weight: 600; z-index: 400; opacity: 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+            transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.34,1.4,0.64,1);
+            white-space: nowrap; pointer-events: none;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="font-size:13px;">▐▐▐ ᯤ ▐</span>
+    </div>
+
+    <div class="tab-content">
+
+      <!-- ══ HOME ══════════════════════════════ -->
+      <div class="tab-panel active" id="tab-home">
+        <div class="home-header">
+          <div class="home-greeting">
+            <h1>Ciao, Paolo 👋</h1>
+            <p>Ecco il riepilogo dei tuoi straordinari</p>
+          </div>
+          <button class="bell-btn">🔔<div class="bell-dot"></div></button>
+        </div>
+
+        <!-- Hero card mensile -->
+        <div class="hero-card">
+          <div class="hero-left">
+            <h3>Ore straordinario<br>questo mese</h3>
+            <div class="hero-hours" id="heroHours">0h 00m</div>
+            <div class="hero-trend">Limite: <b id="heroLimit">25h 00m</b></div>
+          </div>
+          <div class="circle-wrap">
+            <div class="circle-progress">
+              <svg width="92" height="92" viewBox="0 0 92 92">
+                <circle cx="46" cy="46" r="37" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="9"/>
+                <circle id="progressCircle" cx="46" cy="46" r="37" fill="none"
+                  stroke="#69DB7C" stroke-width="9"
+                  stroke-dasharray="232.5" stroke-dashoffset="232.5" stroke-linecap="round"/>
+              </svg>
+              <div class="circle-center">
+                <span class="circle-pct" id="circlePercent">0%</span>
+                <span class="circle-sub">del limite<br>mensile</span>
+              </div>
+            </div>
+            <div class="hero-limit">Limite: <span id="heroLimitSmall">25</span>h</div>
+          </div>
+        </div>
+
+        <!-- Card Oggi -->
+        <div class="today-home-card">
+          <div class="today-home-top">
+            <span class="today-home-lbl">Oggi</span>
+            <span class="today-home-date" id="homeTodayDate"></span>
+          </div>
+          <div class="today-time-row">
+            <div class="today-time-block">
+              <div class="today-time-l">Ingresso</div>
+              <div class="today-time-v" id="homeTodayEntry">07:45</div>
+            </div>
+            <div class="today-sep">→</div>
+            <div class="today-time-block">
+              <div class="today-time-l">Uscita</div>
+              <div class="today-time-v muted" id="homeTodayExit">--:--</div>
+            </div>
+          </div>
+          <div class="today-ot-row" id="homeTodayOtRow">
+            <span class="today-ot-lbl" id="homeTodayOtLbl">Straordinario oggi</span>
+            <span class="today-ot-val" id="homeTodayOtVal">--</span>
+          </div>
+          <button class="btn-register-home" id="homeTodayBtn" onclick="openRegisterModal()">Registra Uscita</button>
+        </div>
+
+        <!-- Ultime registrazioni -->
+        <div class="section-header">
+          <div class="section-title" style="padding:0;margin:0;">Ultime registrazioni</div>
+          <span class="section-link" onclick="switchTab('cronologia')">Vedi tutte</span>
+        </div>
+        <div class="entries-card" id="recentList">
+          <div class="entry-row"><span style="color:#AAA;font-size:13px;">Nessuna registrazione</span></div>
+        </div>
+      </div>
+
+      <!-- ══ CALENDARIO ════════════════════════ -->
+      <div class="tab-panel" id="tab-calendario">
+        <div class="page-header"><h2>Calendario</h2></div>
+        <div class="cal-card">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="tracker.prevMonth()">‹</button>
+            <span class="cal-month-lbl" id="calMonthLabel">—</span>
+            <button class="cal-nav-btn" onclick="tracker.nextMonth()">›</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="cal-summary-card" id="calSummary"></div>
+      </div>
+
+      <!-- ══ CRONOLOGIA ════════════════════════ -->
+      <div class="tab-panel" id="tab-cronologia">
+        <div class="page-header"><h2>Cronologia</h2></div>
+        <div class="crono-list" id="cronoList"></div>
+      </div>
+
+      <!-- ══ PROFILO ═══════════════════════════ -->
+      <div class="tab-panel" id="tab-profilo">
+        <div class="page-header"><h2>Profilo</h2></div>
+        <div class="settings-card" style="margin:0 20px 14px;">
+          <div class="card-lbl" style="padding:15px 18px 0;">Impostazioni</div>
+          <div class="settings-row" onclick="openEntryModal()">
+            <div class="s-left"><span class="s-icon">🕐</span><span class="s-label">Orario ingresso</span></div>
+            <div style="display:flex;align-items:center;">
+              <span class="s-val" id="profEntryTime">07:45</span><span class="s-arr">›</span>
+            </div>
+          </div>
+          <div class="settings-row" onclick="showModal('limitModal')">
+            <div class="s-left"><span class="s-icon">⏱️</span><span class="s-label">Limite mensile</span></div>
+            <div style="display:flex;align-items:center;">
+              <span class="s-val"><span id="profLimit">25</span>h</span><span class="s-arr">›</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-danger" onclick="confirmReset()">🗑️  Reset tutti i dati</button>
+      </div>
+
+    </div><!-- /tab-content -->
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+        <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" id="nav-cronologia" onclick="switchTab('cronologia')">
+        <span class="nav-icon">📋</span><span class="nav-label">Cronologia</span>
+      </button>
+      <button class="nav-fab" onclick="openRegisterModal()">+</button>
+      <button class="nav-item" id="nav-calendario" onclick="switchTab('calendario')">
+        <span class="nav-icon">📅</span><span class="nav-label">Calendario</span>
+      </button>
+      <button class="nav-item" id="nav-profilo" onclick="switchTab('profilo')">
+        <span class="nav-icon">👤</span><span class="nav-label">Profilo</span>
+      </button>
+    </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal: Registra uscita (FAB) -->
+<div class="modal-bg hidden" id="registerModal" onclick="closeModal('registerModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="regModalTitle">Registra Uscita</div>
+    <div class="reg-modal-times">
+      <div class="reg-time-block">
+        <div class="reg-time-l">Ingresso</div>
+        <div class="reg-time-v" id="regEntry">07:45</div>
+      </div>
+      <div class="reg-sep">→</div>
+      <div class="reg-time-block">
+        <div class="reg-time-l">Uscita</div>
+        <div class="reg-time-v muted" id="regExit">--:--</div>
+      </div>
+    </div>
+    <div class="reg-ot-pill" id="regOtPill" style="display:none;">
+      <div class="reg-ot-l">Straordinario registrato</div>
+      <div class="reg-ot-v" id="regOtVal">0h 00m</div>
+    </div>
+    <button class="btn-primary" id="regBtn" onclick="tracker.registerExit()">Registra Uscita</button>
+  </div>
+</div>
+
+<!-- Modal: orario ingresso -->
+<div class="modal-bg hidden" id="entryModal" onclick="closeModal('entryModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Orario Ingresso</div>
+    <div class="time-picker">
+      <div class="tp-col">
+        <button class="tp-step" data-unit="h" data-dir="1">▲</button>
+        <div class="tp-val" id="tpHour">07</div>
+        <div class="tp-unit">ore</div>
+        <button class="tp-step" data-unit="h" data-dir="-1">▼</button>
+      </div>
+      <div class="tp-colon">:</div>
+      <div class="tp-col">
+        <button class="tp-step" data-unit="m" data-dir="1">▲</button>
+        <div class="tp-val" id="tpMin">45</div>
+        <div class="tp-unit">min</div>
+        <button class="tp-step" data-unit="m" data-dir="-1">▼</button>
+      </div>
+    </div>
+    <div class="tp-quick" id="tpQuick"></div>
+    <div class="tp-note">🟠 Il sabato l'ingresso è automaticamente alle <b>08:15</b></div>
+    <button class="btn-primary" onclick="saveEntryTime()">Salva</button>
+  </div>
+</div>
+
+<!-- Modal: limite mensile -->
+<div class="modal-bg hidden" id="limitModal" onclick="closeModal('limitModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Limite Mensile (ore)</div>
+    <input type="number" class="big-input" id="limitInput" value="25" min="1" max="500">
+    <button class="btn-primary" onclick="saveLimit()">Salva</button>
+  </div>
+</div>
+
+<!-- Modal: ore lavoro giornaliere -->
+<div class="modal-bg hidden" id="workHoursModal" onclick="closeModal('workHoursModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ore di lavoro giornaliere</div>
+    <p style="text-align:center; color:var(--muted); margin-bottom:24px; font-size:14px;">Quante ore lavori al giorno?</p>
+    <div style="display:flex; gap:12px; margin-bottom:18px;">
+      <button class="tp-chip" id="btn-6h" onclick="setWorkHours(6)">6 ore</button>
+      <button class="tp-chip" id="btn-7h20" onclick="setWorkHours(7.33)">7:20</button>
+    </div>
+    <button class="btn-primary" onclick="saveWorkHours()" id="workHoursSaveBtn" disabled>Salva</button>
+  </div>
+</div>
+
+  </div><!-- /phone-inner -->
+</div><!-- /phone-frame -->
+
+<script>
+const TABS = ['home','calendario','cronologia','profilo'];
+
+function switchTab(name) {
+  TABS.forEach(t => {
+    document.getElementById('tab-'+t)?.classList.remove('active');
+    document.getElementById('nav-'+t)?.classList.remove('active');
+  });
+  document.getElementById('tab-'+name)?.classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
+  if (name === 'calendario') tracker.renderCalendar();
+  if (name === 'cronologia') tracker.renderCrono();
+  if (name === 'home')       tracker.updateHome();
+}
+
+function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function openRegisterModal() {
+  tracker.refreshRegisterModal();
+  showModal('registerModal');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ── Time Picker ─────────────────────────────────── */
+let pickH = 7, pickM = 45;
+const TP_QUICK = ['07:00','07:30','07:45','08:00'];
+
+function renderPicker(bump) {
+  const hEl = document.getElementById('tpHour');
+  const mEl = document.getElementById('tpMin');
+  hEl.textContent = String(pickH).padStart(2,'0');
+  mEl.textContent = String(pickM).padStart(2,'0');
+  if (bump) {
+    const el = bump === 'h' ? hEl : mEl;
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  }
+  const cur = String(pickH).padStart(2,'0') + ':' + String(pickM).padStart(2,'0');
+  document.getElementById('tpQuick').innerHTML = TP_QUICK.map(t =>
+    `<button class="tp-chip${t===cur?' active':''}" onclick="setPicker('${t}')">${t}</button>`
+  ).join('');
+}
+
+function setPicker(t) {
+  const [h,m] = t.split(':').map(Number);
+  pickH = h; pickM = m;
+  renderPicker();
+}
+
+function adjustTime(unit, dir) {
+  if (unit === 'h') {
+    pickH = (pickH + dir + 24) % 24;
+  } else {
+    pickM = (pickM + dir + 60) % 60;
+  }
+  renderPicker(unit);
+}
+
+function openEntryModal() {
+  const [h,m] = tracker.entryTime.split(':').map(Number);
+  pickH = h; pickM = m;
+  renderPicker();
+  showModal('entryModal');
+}
+
+// Hold-to-repeat sui pulsanti freccia
+(function setupHold() {
+  let timer = null, delay = null;
+  function start(unit, dir) {
+    adjustTime(unit, dir);
+    delay = setTimeout(() => { timer = setInterval(() => adjustTime(unit, dir), 80); }, 380);
+  }
+  function stop() { clearTimeout(delay); clearInterval(timer); timer = delay = null; }
+  document.querySelectorAll('.tp-step').forEach(btn => {
+    const unit = btn.dataset.unit, dir = parseInt(btn.dataset.dir);
+    btn.addEventListener('mousedown', e => { e.preventDefault(); start(unit, dir); });
+    btn.addEventListener('touchstart', e => { e.preventDefault(); start(unit, dir); }, {passive:false});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev => btn.addEventListener(ev, stop));
+  });
+})();
+
+function saveEntryTime() {
+  const v = String(pickH).padStart(2,'0') + ':' + String(pickM).padStart(2,'0');
+  tracker.entryTime = v;
+  localStorage.setItem('s_entry', v);
+  tracker.recalcToday();
+  tracker.updateAll();
+  closeModal('entryModal');
+  showToast('✓ Orario ingresso aggiornato');
+}
+
+function saveLimit() {
+  const v = parseInt(document.getElementById('limitInput').value);
+  if (!v || v < 1) return;
+  tracker.limit = v;
+  localStorage.setItem('s_limit', v);
+  tracker.updateAll();
+  closeModal('limitModal');
+  showToast('✓ Limite mensile aggiornato');
+}
+
+function confirmReset() {
+  if (confirm('Eliminare tutti i dati?')) {
+    tracker.entries = [];
+    tracker.save();
+    tracker.updateAll();
+    showToast('✓ Dati eliminati');
+  }
+}
+
+let selectedWorkHours = 0;
+function setWorkHours(hours) {
+  selectedWorkHours = hours;
+  document.getElementById('btn-6h').classList.toggle('active', hours === 6);
+  document.getElementById('btn-7h20').classList.toggle('active', hours === 7.33);
+  document.getElementById('workHoursSaveBtn').disabled = false;
+}
+
+function saveWorkHours() {
+  if (!selectedWorkHours) return;
+  tracker.workHours = selectedWorkHours;
+  localStorage.setItem('s_workHours', selectedWorkHours);
+  closeModal('workHoursModal');
+  tracker.updateAll();
+  showToast('✓ Ore di lavoro salvate');
+}
+
+/* ── OvertimeTracker ─────────────────────────────── */
+class OvertimeTracker {
+  constructor() {
+    this.entries   = JSON.parse(localStorage.getItem('s_data') || '[]');
+    this.entryTime = localStorage.getItem('s_entry') || '07:45';
+    this.limit     = parseInt(localStorage.getItem('s_limit') || '25');
+    this.workHours = parseInt(localStorage.getItem('s_workHours') || '0');
+    this.calYear   = new Date().getFullYear();
+    this.calMonth  = new Date().getMonth();
+  }
+
+  today() { return new Date().toISOString().split('T')[0]; }
+
+  isSat(date) { return new Date(date + 'T00:00:00').getDay() === 6; }
+
+  nowStr() {
+    const n = new Date();
+    const m = Math.floor(n.getMinutes() / 15) * 15;
+    return n.getHours().toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0');
+  }
+
+  toMin(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+
+  // Orario d'ingresso effettivo per la data: sabato = 08:15 fisso, altrimenti quello configurato
+  entryFor(date) { return this.isSat(date || this.today()) ? '08:15' : this.entryTime; }
+
+  calcOT(exit, date) {
+    const worked = this.toMin(exit) - this.toMin(this.entryFor(date));
+    const workMin = this.workHours === 6 ? 360 : 440; // 6h = 360min, 7:20 = 440min
+    // Se lavori 6 ore, sabato non è tutto straordinario, calcolo normale
+    // Se lavori 7:20, sabato è tutto straordinario (come prima)
+    const isSat = this.isSat(date || this.today());
+    const rawMin = (isSat && this.workHours !== 6)
+      ? Math.max(0, worked)
+      : Math.max(0, worked - workMin);
+    return Math.floor(rawMin / 15) * 15 / 60;
+  }
+
+  fmt(h) {
+    const hrs = Math.floor(h);
+    const min = Math.round((h - hrs) * 60);
+    return hrs + 'h ' + min.toString().padStart(2,'0') + 'm';
+  }
+
+  monthKey(y, m) { return y + '-' + String(m+1).padStart(2,'0'); }
+  monthTotal(y, m) {
+    const k = this.monthKey(y, m);
+    return this.entries.filter(e => e.date.startsWith(k)).reduce((s,e) => s+(e.ot||0), 0);
+  }
+
+  registerExit() {
+    const d = this.today(), t = this.nowStr();
+    let e = this.entries.find(x => x.date === d);
+    if (!e) { e = {date:d, in:this.entryFor(d), out:null, ot:0}; this.entries.push(e); }
+    e.out = t; e.in = this.entryFor(d); e.ot = this.calcOT(t, d);
+    this.save();
+    this.updateAll();
+    this.refreshRegisterModal();
+    closeModal('registerModal');
+    showToast('✓ Uscita registrata: ' + t);
+  }
+
+  recalcToday() {
+    const e = this.entries.find(x => x.date === this.today());
+    if (e && e.out) { e.in = this.entryFor(e.date); e.ot = this.calcOT(e.out, e.date); this.save(); }
+  }
+
+  deleteEntry(date) {
+    if (!confirm('Eliminare questa registrazione?')) return;
+    this.entries = this.entries.filter(e => e.date !== date);
+    this.save();
+    this.updateAll();
+    this.renderCrono();
+    showToast('✓ Registrazione eliminata');
+  }
+
+  save() { localStorage.setItem('s_data', JSON.stringify(this.entries)); }
+
+  updateAll() {
+    this.updateHome();
+    this.updateProfilo();
+  }
+
+  /* ─ Modal Registra ─ */
+  refreshRegisterModal() {
+    const d = this.today();
+    const e = this.entries.find(x => x.date === d);
+    const sat = this.isSat(d);
+
+    document.getElementById('regEntry').textContent = this.entryFor(d);
+
+    if (e && e.out) {
+      document.getElementById('regExit').textContent = e.out;
+      document.getElementById('regExit').classList.remove('muted');
+      document.getElementById('regOtPill').style.display = 'block';
+      document.getElementById('regOtPill').className = 'reg-ot-pill' + (sat ? ' saturday' : '');
+      document.getElementById('regOtVal').textContent = this.fmt(e.ot||0);
+      document.getElementById('regOtVal').className   = 'reg-ot-v' + (sat ? ' saturday' : '');
+      document.getElementById('regBtn').textContent   = 'Aggiorna Uscita';
+      document.getElementById('regModalTitle').textContent = sat ? '🟠 Sabato — tutto straordinario' : 'Aggiorna Uscita';
+    } else {
+      document.getElementById('regExit').textContent = '--:--';
+      document.getElementById('regExit').classList.add('muted');
+      document.getElementById('regOtPill').style.display = 'none';
+      document.getElementById('regBtn').textContent = 'Registra Uscita';
+      document.getElementById('regModalTitle').textContent = sat ? '🟠 Sabato — tutto straordinario' : 'Registra Uscita';
+    }
+  }
+
+  /* ─ Home ─ */
+  updateHome() {
+    const now   = new Date();
+    const total = this.monthTotal(now.getFullYear(), now.getMonth());
+    const pct   = Math.min(100, Math.round((total / this.limit) * 100));
+    const circ  = 2 * Math.PI * 37;
+    const off   = circ * (1 - pct/100);
+
+    document.getElementById('heroHours').textContent      = this.fmt(total);
+    document.getElementById('heroLimit').textContent      = this.limit + 'h 00m';
+    document.getElementById('heroLimitSmall').textContent = this.limit;
+    document.getElementById('circlePercent').textContent  = pct + '%';
+    document.getElementById('progressCircle').setAttribute('stroke-dashoffset', off.toFixed(1));
+
+    // Card oggi
+    const d   = this.today();
+    const sat = this.isSat(d);
+    const e   = this.entries.find(x => x.date === d);
+    const dateLabel = now.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
+
+    document.getElementById('homeTodayDate').textContent    = dateLabel;
+    document.getElementById('homeTodayEntry').textContent   = this.entryFor(d);
+    document.getElementById('homeTodayOtRow').className     = 'today-ot-row' + (sat ? ' saturday' : '');
+    document.getElementById('homeTodayOtVal').className     = 'today-ot-val' + (sat ? ' saturday' : '');
+
+    if (e && e.out) {
+      document.getElementById('homeTodayExit').textContent  = e.out;
+      document.getElementById('homeTodayExit').classList.remove('muted');
+      document.getElementById('homeTodayOtLbl').innerHTML   = 'Straordinario oggi' + (sat ? ' <span class="sat-badge-home">Sabato</span>' : '');
+      document.getElementById('homeTodayOtVal').textContent = this.fmt(e.ot||0);
+      document.getElementById('homeTodayBtn').textContent   = 'Aggiorna Uscita';
+      document.getElementById('homeTodayBtn').className     = 'btn-register-home update';
+    } else {
+      document.getElementById('homeTodayExit').textContent  = '--:--';
+      document.getElementById('homeTodayExit').classList.add('muted');
+      document.getElementById('homeTodayOtLbl').innerHTML   = sat ? 'Sabato — tutto straordinario' : 'Straordinario oggi';
+      document.getElementById('homeTodayOtVal').textContent = '--';
+      document.getElementById('homeTodayBtn').textContent   = 'Registra Uscita';
+      document.getElementById('homeTodayBtn').className     = 'btn-register-home';
+    }
+
+    // Ultime registrazioni (4)
+    const sorted = [...this.entries].sort((a,b) => b.date.localeCompare(a.date)).slice(0,4);
+    const list = document.getElementById('recentList');
+    if (!sorted.length) {
+      list.innerHTML = '<div class="entry-row"><span style="color:#AAA;font-size:13px;">Nessuna registrazione</span></div>';
+      return;
+    }
+    list.innerHTML = sorted.map(e => {
+      const d2  = new Date(e.date + 'T00:00:00');
+      const lbl = d2.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+      const cap = lbl[0].toUpperCase() + lbl.slice(1);
+      const done  = !!e.out;
+      const isSat = this.isSat(e.date);
+      const times = done ? `${e.in} - ${e.out}` : `${e.in} - in corso`;
+      const iconCls = done ? (isSat ? ' saturday' : '') : ' pending';
+      const hrsCls  = done ? (isSat ? ' orange' : '') : ' blue';
+      const bdg     = done
+        ? (isSat ? '<span class="badge badge-sat">Sabato</span>' : '<span class="badge badge-ok">Completato</span>')
+        : '<span class="badge badge-wait">In corso</span>';
+      return `
+        <div class="entry-row">
+          <div class="entry-icon-wrap${iconCls}">${isSat ? '🟠' : (done ? '📅' : '🕐')}</div>
+          <div class="entry-info">
+            <div class="entry-name">${cap}</div>
+            <div class="entry-time-sub">${times}</div>
+          </div>
+          <div class="entry-right">
+            <div class="entry-hrs${hrsCls}">${this.fmt(e.ot||0)}</div>
+            ${bdg}
+          </div>
+          <span class="chevron">›</span>
+        </div>`;
+    }).join('');
+  }
+
+  /* ─ Profilo ─ */
+  updateProfilo() {
+    document.getElementById('profEntryTime').textContent = this.entryTime;
+    document.getElementById('profLimit').textContent     = this.limit;
+  }
+
+  /* ─ Calendario ─ */
+  prevMonth() { this.calMonth===0 ? (this.calMonth=11,this.calYear--) : this.calMonth--; this.renderCalendar(); }
+  nextMonth() { this.calMonth===11? (this.calMonth=0, this.calYear++) : this.calMonth++; this.renderCalendar(); }
+
+  renderCalendar() {
+    const months = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+                    'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    document.getElementById('calMonthLabel').textContent = months[this.calMonth] + ' ' + this.calYear;
+
+    const today = this.today();
+    const first = new Date(this.calYear, this.calMonth, 1);
+    const last  = new Date(this.calYear, this.calMonth+1, 0);
+    const mKey  = this.monthKey(this.calYear, this.calMonth);
+    const eMap  = {};
+    this.entries.filter(e => e.date.startsWith(mKey)).forEach(e => { eMap[e.date] = e; });
+
+    let dow = first.getDay() - 1;
+    if (dow < 0) dow = 6;
+
+    let html = `
+      <div class="cal-wday">Lun</div><div class="cal-wday">Mar</div>
+      <div class="cal-wday">Mer</div><div class="cal-wday">Gio</div>
+      <div class="cal-wday">Ven</div>
+      <div class="cal-wday sat">Sab</div><div class="cal-wday sun">Dom</div>`;
+
+    for (let i = 0; i < dow; i++) html += '<div class="cal-day empty"></div>';
+
+    for (let d = 1; d <= last.getDate(); d++) {
+      const ds  = `${this.calYear}-${String(this.calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const wd  = new Date(this.calYear, this.calMonth, d).getDay();
+      const isT = ds === today;
+      const hasD= !!eMap[ds];
+      const isSat = wd === 6;
+      const isW = wd === 0 || wd === 6;
+
+      let cls = 'cal-day';
+      if (isT) cls += ' today';
+      if (hasD) cls += isSat ? ' has-sat' : ' has-data';
+      else if (isW) cls += ' weekend';
+
+      const hDiv = hasD ? `<div class="cal-day-h">${this.fmt(eMap[ds].ot||0)}</div>` : '';
+      html += `<div class="${cls}"><div class="cal-day-n">${d}</div>${hDiv}</div>`;
+    }
+
+    document.getElementById('calGrid').innerHTML = html;
+
+    const total    = this.monthTotal(this.calYear, this.calMonth);
+    const workDays = this.entries.filter(e => e.date.startsWith(mKey) && e.out).length;
+    const satDays  = this.entries.filter(e => e.date.startsWith(mKey) && e.out && this.isSat(e.date)).length;
+    const pct      = Math.min(100, Math.round((total/this.limit)*100));
+    document.getElementById('calSummary').innerHTML = `
+      <div class="card-lbl">Riepilogo ${months[this.calMonth]}</div>
+      <div class="summary-row"><span class="summary-lbl">Giorni registrati</span><span class="summary-val">${workDays}</span></div>
+      ${satDays ? `<div class="summary-row"><span class="summary-lbl">di cui sabati</span><span class="summary-val" style="color:#E67700;">${satDays}</span></div>` : ''}
+      <div class="summary-row"><span class="summary-lbl">Ore totali straordinario</span><span class="summary-val green">${this.fmt(total)}</span></div>
+      <div class="summary-row"><span class="summary-lbl">Limite mensile</span><span class="summary-val">${this.limit}h 00m</span></div>
+      <div class="summary-row"><span class="summary-lbl">Utilizzo limite</span><span class="summary-val ${pct>=90?'':'green'}">${pct}%</span></div>`;
+  }
+
+  /* ─ Cronologia ─ */
+  renderCrono() {
+    const sorted = [...this.entries].sort((a,b) => b.date.localeCompare(a.date));
+    const el = document.getElementById('cronoList');
+    if (!sorted.length) {
+      el.innerHTML = '<div style="text-align:center;color:#AAA;padding:40px 0;font-size:14px;">Nessuna registrazione</div>';
+      return;
+    }
+    let prevM = '';
+    el.innerHTML = sorted.map(e => {
+      const d    = new Date(e.date + 'T00:00:00');
+      const mLbl = d.toLocaleDateString('it-IT', {month:'long', year:'numeric'});
+      const mCap = mLbl[0].toUpperCase() + mLbl.slice(1);
+      const dLbl = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+      const dCap = dLbl[0].toUpperCase() + dLbl.slice(1);
+      const sat  = this.isSat(e.date);
+
+      let hdr = '';
+      if (mLbl !== prevM) { hdr = `<div class="crono-month-hdr">${mCap}</div>`; prevM = mLbl; }
+
+      const badge = sat
+        ? '<span class="badge badge-sat">Sabato</span>'
+        : (e.out ? '<span class="badge badge-ok">Completato</span>' : '<span class="badge badge-wait">In corso</span>');
+
+      return `${hdr}
+        <div class="crono-row">
+          <div class="crono-icon${sat?' saturday':''}">${sat ? '🟠' : (e.out ? '📅' : '🕐')}</div>
+          <div class="crono-info">
+            <div class="crono-name">${dCap}</div>
+            <div class="crono-sub">${e.in} → ${e.out||'in corso'}</div>
+          </div>
+          <div class="crono-right">
+            <span class="crono-hrs${sat?' saturday':''}">${this.fmt(e.ot||0)}</span>
+            ${badge}
+          </div>
+          <button class="crono-del" onclick="tracker.deleteEntry('${e.date}')">✕</button>
+        </div>`;
+    }).join('');
+  }
+}
+
+/* ── Boot ─────────────────────────────────────── */
+const tracker = new OvertimeTracker();
+document.getElementById('limitInput').value     = tracker.limit;
+tracker.updateAll();
+tracker.renderCalendar();
+
+// Mostra il modal delle ore di lavoro al primo accesso
+if (!tracker.workHours) {
+  showModal('workHoursModal');
+}
+
+// Registra il Service Worker per PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => {
+    console.log('Service Worker registration failed:', err);
+  });
+}
+</script>
+</body>
+</html>
