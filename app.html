@@ -612,6 +612,12 @@
               <span class="s-val" id="profEntryTime">07:45</span><span class="s-arr">›</span>
             </div>
           </div>
+          <div class="settings-row" onclick="openWorkHoursModal()">
+            <div class="s-left"><span class="s-icon">⏰</span><span class="s-label">Ore giornaliere</span></div>
+            <div style="display:flex;align-items:center;">
+              <span class="s-val" id="profWorkHours">—</span><span class="s-arr">›</span>
+            </div>
+          </div>
           <div class="settings-row" onclick="showModal('limitModal')">
             <div class="s-left"><span class="s-icon">⏱️</span><span class="s-label">Limite mensile</span></div>
             <div style="display:flex;align-items:center;">
@@ -878,10 +884,26 @@ function setWorkHours(hours) {
   document.getElementById('workHoursSaveBtn').disabled = false;
 }
 
+function openWorkHoursModal() {
+  const wh = tracker.workHours || 0;
+  if (wh === 6) {
+    setWorkHours(6);
+  } else if (wh) {
+    setWorkHours(7.33);
+  } else {
+    selectedWorkHours = 0;
+    document.getElementById('btn-6h').classList.remove('active');
+    document.getElementById('btn-7h20').classList.remove('active');
+    document.getElementById('workHoursSaveBtn').disabled = true;
+  }
+  showModal('workHoursModal');
+}
+
 function saveWorkHours() {
   if (!selectedWorkHours) return;
   tracker.workHours = selectedWorkHours;
   localStorage.setItem('s_workHours', selectedWorkHours);
+  tracker.recalcAll();
   closeModal('workHoursModal');
   tracker.updateAll();
   showToast('✓ Ore di lavoro salvate');
@@ -893,7 +915,7 @@ class OvertimeTracker {
     this.entries   = JSON.parse(localStorage.getItem('s_data') || '[]');
     this.entryTime = localStorage.getItem('s_entry') || '07:45';
     this.limit     = parseInt(localStorage.getItem('s_limit') || '25');
-    this.workHours = parseInt(localStorage.getItem('s_workHours') || '0');
+    this.workHours = parseFloat(localStorage.getItem('s_workHours') || '0');
     this.name      = localStorage.getItem('s_name') || '';
     this.calYear   = new Date().getFullYear();
     this.calMonth  = new Date().getMonth();
@@ -953,6 +975,13 @@ class OvertimeTracker {
   recalcToday() {
     const e = this.entries.find(x => x.date === this.today());
     if (e && e.out) { e.in = this.entryFor(e.date); e.ot = this.calcOT(e.out, e.date); this.save(); }
+  }
+
+  recalcAll() {
+    this.entries.forEach(e => {
+      if (e.out) { e.in = this.entryFor(e.date); e.ot = this.calcOT(e.out, e.date); }
+    });
+    this.save();
   }
 
   deleteEntry(date) {
@@ -1084,6 +1113,8 @@ class OvertimeTracker {
     document.getElementById('profName').textContent      = this.name || '—';
     document.getElementById('profEntryTime').textContent = this.entryTime;
     document.getElementById('profLimit').textContent     = this.limit;
+    document.getElementById('profWorkHours').textContent =
+      this.workHours === 6 ? '6 ore' : (this.workHours ? '7:20' : '—');
   }
 
   /* ─ Calendario ─ */

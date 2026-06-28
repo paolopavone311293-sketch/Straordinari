@@ -1,4 +1,4 @@
-const CACHE_NAME = 'straordinari-v4';
+const CACHE_NAME = 'straordinari-v5';
 const ASSETS = [
   './',
   './app.html',
