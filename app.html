@@ -2,14 +2,16 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#3B5BDB">
     <meta name="description" content="Traccia le tue ore straordinarie con selezione automatica del tipo di lavoro">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Straordinari">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%233B5BDB' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>S</text></svg>">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Straordinari</title>
     <style>
         :root {
@@ -457,6 +459,42 @@
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── MOBILE: a tutto schermo sul telefono reale ───── */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+                background: #EEF0F6;
+                align-items: stretch;
+                justify-content: stretch;
+            }
+            .phone-frame {
+                width: 100%;
+                height: 100vh;        /* fallback */
+                height: 100dvh;       /* segue la barra del browser mobile */
+                border-radius: 0;
+                padding: 0;
+                box-shadow: none;
+                background: none;
+            }
+            .phone-inner {
+                border-radius: 0;
+                box-shadow: none;
+                /* spazio per notch / status bar di sistema */
+                padding-top: env(safe-area-inset-top);
+            }
+            /* la barra "9:41" finta non serve: il telefono ha la sua */
+            .status-bar { display: none; }
+            .bottom-nav {
+                /* rispetta la barra gesti / home indicator in basso */
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+            /* le modali a comparsa tengono conto della barra in basso */
+            .modal-sheet {
+                padding-bottom: calc(30px + env(safe-area-inset-bottom));
+            }
+            .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
+        }
     </style>
 </head>
 <body>
@@ -473,7 +511,7 @@
       <div class="tab-panel active" id="tab-home">
         <div class="home-header">
           <div class="home-greeting">
-            <h1>Ciao, Paolo 👋</h1>
+            <h1 id="homeGreeting">Ciao 👋</h1>
             <p>Ecco il riepilogo dei tuoi straordinari</p>
           </div>
           <button class="bell-btn">🔔<div class="bell-dot"></div></button>
@@ -562,6 +600,12 @@
         <div class="page-header"><h2>Profilo</h2></div>
         <div class="settings-card" style="margin:0 20px 14px;">
           <div class="card-lbl" style="padding:15px 18px 0;">Impostazioni</div>
+          <div class="settings-row" onclick="openNameModal()">
+            <div class="s-left"><span class="s-icon">👤</span><span class="s-label">Nome</span></div>
+            <div style="display:flex;align-items:center;">
+              <span class="s-val" id="profName">—</span><span class="s-arr">›</span>
+            </div>
+          </div>
           <div class="settings-row" onclick="openEntryModal()">
             <div class="s-left"><span class="s-icon">🕐</span><span class="s-label">Orario ingresso</span></div>
             <div style="display:flex;align-items:center;">
@@ -657,6 +701,17 @@
     <div class="modal-title">Limite Mensile (ore)</div>
     <input type="number" class="big-input" id="limitInput" value="25" min="1" max="500">
     <button class="btn-primary" onclick="saveLimit()">Salva</button>
+  </div>
+</div>
+
+<!-- Modal: nome utente (primo avvio / modifica) -->
+<div class="modal-bg hidden" id="nameModal">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Come ti chiami?</div>
+    <p style="text-align:center; color:var(--muted); margin-bottom:18px; font-size:14px;">Il nome resta solo su questo dispositivo.</p>
+    <input type="text" class="big-input" id="nameInput" placeholder="Nome" style="font-size:26px;" autocomplete="off" maxlength="20">
+    <button class="btn-primary" onclick="saveName()">Continua</button>
   </div>
 </div>
 
@@ -793,6 +848,28 @@ function confirmReset() {
   }
 }
 
+function openNameModal() {
+  document.getElementById('nameInput').value = tracker.name || '';
+  showModal('nameModal');
+  setTimeout(() => document.getElementById('nameInput').focus(), 250);
+}
+
+function saveName() {
+  const v = document.getElementById('nameInput').value.trim();
+  if (!v) return;
+  tracker.name = v;
+  localStorage.setItem('s_name', v);
+  tracker.updateGreeting();
+  tracker.updateProfilo();
+  closeModal('nameModal');
+  // Primo avvio: dopo il nome chiedi le ore di lavoro se non impostate
+  if (!tracker.workHours) {
+    showModal('workHoursModal');
+  } else {
+    showToast('✓ Nome aggiornato');
+  }
+}
+
 let selectedWorkHours = 0;
 function setWorkHours(hours) {
   selectedWorkHours = hours;
@@ -817,6 +894,7 @@ class OvertimeTracker {
     this.entryTime = localStorage.getItem('s_entry') || '07:45';
     this.limit     = parseInt(localStorage.getItem('s_limit') || '25');
     this.workHours = parseInt(localStorage.getItem('s_workHours') || '0');
+    this.name      = localStorage.getItem('s_name') || '';
     this.calYear   = new Date().getFullYear();
     this.calMonth  = new Date().getMonth();
   }
@@ -920,7 +998,13 @@ class OvertimeTracker {
   }
 
   /* ─ Home ─ */
+  updateGreeting() {
+    const el = document.getElementById('homeGreeting');
+    if (el) el.textContent = 'Ciao' + (this.name ? ', ' + this.name : '') + ' 👋';
+  }
+
   updateHome() {
+    this.updateGreeting();
     const now   = new Date();
     const total = this.monthTotal(now.getFullYear(), now.getMonth());
     const pct   = Math.min(100, Math.round((total / this.limit) * 100));
@@ -997,6 +1081,7 @@ class OvertimeTracker {
 
   /* ─ Profilo ─ */
   updateProfilo() {
+    document.getElementById('profName').textContent      = this.name || '—';
     document.getElementById('profEntryTime').textContent = this.entryTime;
     document.getElementById('profLimit').textContent     = this.limit;
   }
@@ -1107,8 +1192,10 @@ document.getElementById('limitInput').value     = tracker.limit;
 tracker.updateAll();
 tracker.renderCalendar();
 
-// Mostra il modal delle ore di lavoro al primo accesso
-if (!tracker.workHours) {
+// Primo accesso: chiedi prima il nome, poi le ore di lavoro
+if (!tracker.name) {
+  openNameModal();
+} else if (!tracker.workHours) {
   showModal('workHoursModal');
 }
 
