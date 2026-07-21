@@ -1,0 +1,49 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS Files
+*.log
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.ap_
+*.aab
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# The .DS_Store files in Mac
+.DS_Store
+
+# flottefiles
+.flotte/
+
+# generated
+.gradle
+*.iml
+.idea
+.DS_Store
+build/
+local.properties
+
+# sensibili / pesanti — MAI pubblicare
+*.jks
+*.keystore
+*.hprof
+.claude/
+
+# backend / segreti — MAI pubblicare
+firebase-key.json
+.env
+node_modules/

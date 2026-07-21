@@ -2,7 +2,16 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#3B5BDB">
+    <meta name="description" content="Traccia le tue ore straordinarie con selezione automatica del tipo di lavoro">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Straordinari">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Straordinari</title>
     <style>
         :root {
@@ -17,6 +26,16 @@
             --muted:   #8A8D9F;
             --line:    rgba(20,21,42,0.06);
 
+            /* Light mode */
+            --bg-inner: radial-gradient(circle at 50% -5%, #FFFFFF 0%, #F4F5FA 30%, #EEF0F6 100%);
+            --bg-nav: rgba(255,255,255,0.82);
+            --bg-card: #FFFFFF;
+            --bg-surface: #F2F3F9;
+            --bg-input: #F4F5FA;
+            --bg-hover: #F7F8FC;
+            --text-primary: #14152A;
+            --text-muted: #8A8D9F;
+
             /* Sistema ombre stratificate */
             --sh-xs:  0 1px 2px rgba(20,21,42,0.05);
             --sh-sm:  0 2px 4px rgba(20,21,42,0.04), 0 4px 12px rgba(20,21,42,0.05);
@@ -24,6 +43,23 @@
             --sh-lg:  0 8px 16px rgba(20,21,42,0.06), 0 20px 48px rgba(20,21,42,0.10);
             --sh-blue:0 8px 18px rgba(59,91,219,0.30), 0 16px 40px rgba(59,91,219,0.22);
             --sh-fab: 0 6px 14px rgba(59,91,219,0.40), 0 12px 28px rgba(59,91,219,0.32);
+        }
+
+        body.dark-mode {
+            --bg-inner: radial-gradient(circle at 50% -5%, #1a1a2e 0%, #16213e 30%, #0f3460 100%) !important;
+            --bg-nav: rgba(26,26,46,0.95) !important;
+            --bg-card: #252540 !important;
+            --bg-surface: #3a3a54 !important;
+            --bg-input: #2a2a40 !important;
+            --bg-hover: #3a3a54 !important;
+            --text-primary: #E8E8F0 !important;
+            --text-muted: #A0A0B0 !important;
+            --line: rgba(232,232,240,0.1) !important;
+            /* Colori semantici: rendono leggibili titoli, orari, valori */
+            --ink: #E8E8F0 !important;
+            --muted: #9A9CB4 !important;
+            --green: #51CF66 !important;
+            --orange: #FFA94D !important;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,11 +86,12 @@
 
         .phone-inner {
             flex: 1; position: relative;
-            background:
-                radial-gradient(circle at 50% -5%, #FFFFFF 0%, #F4F5FA 30%, #EEF0F6 100%);
+            background: var(--bg-inner);
             border-radius: 44px;
             overflow: hidden; display: flex; flex-direction: column;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .status-bar {
@@ -71,10 +108,10 @@
 
         /* ── Bottom Nav ─────────────────────── */
         .bottom-nav {
-            background: rgba(255,255,255,0.82);
+            background: var(--bg-nav);
             backdrop-filter: saturate(180%) blur(20px);
             -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-top: 0.5px solid rgba(20,21,42,0.07);
+            border-top: 0.5px solid var(--line);
             display: flex; align-items: center; justify-content: space-around;
             padding: 9px 0 24px; flex-shrink: 0;
             box-shadow: 0 -6px 24px rgba(20,21,42,0.06);
@@ -110,7 +147,7 @@
         .home-greeting h1 { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.6px; }
         .home-greeting p  { font-size: 13px; color: var(--muted); margin-top: 3px; }
         .bell-btn {
-            width: 42px; height: 42px; background: #fff; border-radius: 14px;
+            width: 42px; height: 42px; background: #FFFFFF; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             font-size: 18px; box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255,255,255,0.9);
             position: relative; cursor: pointer; border: none;
@@ -164,7 +201,7 @@
 
         /* Card Oggi in Home */
         .today-home-card {
-            background: #fff; border-radius: 22px; margin: 0 20px 18px;
+            background: #FFFFFF; border-radius: 22px; margin: 0 20px 18px;
             padding: 18px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8);
         }
         .today-home-top {
@@ -174,7 +211,7 @@
         .today-home-date { font-size: 11px; color: var(--muted); font-weight: 500; }
         .today-time-row {
             display: flex; align-items: center; gap: 0; margin-bottom: 14px;
-            background: #F7F8FC; border-radius: 16px; padding: 12px 8px;
+            background: var(--bg-input); border-radius: 16px; padding: 12px 8px;
             box-shadow: inset 0 1px 3px rgba(20,21,42,0.05);
         }
         .today-time-block { flex: 1; text-align: center; }
@@ -218,10 +255,10 @@
         .section-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 12px; }
         .section-link   { font-size: 13px; color: var(--blue); font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
         .section-link:active { opacity: 0.6; }
-        .entries-card { background: #fff; border-radius: 22px; margin: 0 20px; overflow: hidden; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .entries-card { background: #FFFFFF; border-radius: 22px; margin: 0 20px; overflow: hidden; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
         .entry-row { display: flex; align-items: center; padding: 14px 16px; gap: 12px; border-bottom: 0.5px solid var(--line); transition: background 0.15s ease; }
         .entry-row:last-child { border-bottom: none; }
-        .entry-row:active { background: #F7F8FC; }
+        .entry-row:active { background: var(--bg-hover); }
         .entry-icon-wrap {
             width: 44px; height: 44px; border-radius: 14px;
             background: linear-gradient(135deg, #EBFBEE, #DCF5E1);
@@ -248,16 +285,16 @@
         .page-header h2 { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
         .page-header p  { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-        .cal-card { background: #fff; border-radius: 24px; margin: 8px 20px 16px; padding: 20px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .cal-card { background: #FFFFFF; border-radius: 24px; margin: 8px 20px 16px; padding: 20px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
         .cal-nav  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
         .cal-nav-btn {
-            background: #F2F3F9; border: none; border-radius: 50%; width: 36px; height: 36px;
+            background: var(--bg-surface); border: none; border-radius: 50%; width: 36px; height: 36px;
             cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center;
-            color: var(--ink); box-shadow: var(--sh-xs);
+            color: var(--text-primary); box-shadow: var(--sh-xs);
             transition: transform 0.14s ease, background 0.14s ease;
         }
-        .cal-nav-btn:hover  { background: #E9EBF4; }
-        .cal-nav-btn:active { transform: scale(0.88); background: #E1E4F0; }
+        .cal-nav-btn:hover  { background: var(--bg-hover); }
+        .cal-nav-btn:active { transform: scale(0.88); background: var(--bg-hover); }
         .cal-month-lbl { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
         .cal-wday { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 4px 0 8px; }
@@ -275,8 +312,14 @@
         .cal-day.has-sat .cal-day-n   { color: var(--orange); font-weight: 800; }
         .cal-day.has-sat .cal-day-h   { color: var(--orange); }
         .cal-day.weekend .cal-day-n   { color: #C7CAD8; }
+        .cal-day.selected { background: var(--blue); box-shadow: 0 0 0 2px rgba(59,91,219,0.5); }
+        .cal-day.selected .cal-day-n { color: #fff; font-weight: 800; }
+        .cal-day.selected .cal-day-h { color: #B2F2BB; }
+        .cal-day:not(.empty) { cursor: pointer; }
+        .cal-day.future { cursor: default; opacity: 0.4; pointer-events: none; }
+        .cal-day.future .cal-day-n { color: #C7CAD8; }
 
-        .cal-summary-card { background: #fff; border-radius: 24px; margin: 0 20px 16px; padding: 20px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .cal-summary-card { background: #FFFFFF; border-radius: 24px; margin: 0 20px 16px; padding: 20px; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
         .card-lbl { font-size: 11px; font-weight: 800; color: var(--blue); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
         .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--line); }
         .summary-row:last-child { border-bottom: none; }
@@ -289,7 +332,7 @@
         .crono-month-hdr { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 18px 4px 10px; }
         .crono-row {
             display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            background: #fff; border-radius: 18px; margin-bottom: 10px;
+            background: #FFFFFF; border-radius: 18px; margin-bottom: 10px;
             box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255,255,255,0.8);
             transition: transform 0.14s ease, box-shadow 0.14s ease;
         }
@@ -317,27 +360,43 @@
         .crono-del:active { transform: scale(0.85); }
 
         /* ── PROFILO ────────────────────────── */
-        .settings-card { background: #fff; border-radius: 24px; margin: 0 20px 16px; overflow: hidden; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .settings-card { background: #FFFFFF; border-radius: 24px; margin: 0 20px 16px; overflow: hidden; box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.8); }
         .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 0.5px solid var(--line); cursor: pointer; transition: background 0.15s ease; }
         .settings-row:last-child { border-bottom: none; }
-        .settings-row:active { background: #F7F8FC; }
+        .settings-row:active { background: var(--bg-hover); }
         .s-left  { display: flex; align-items: center; gap: 13px; }
         .s-icon  {
             font-size: 17px; width: 38px; height: 38px; border-radius: 12px;
-            background: #F2F3F9; display: flex; align-items: center; justify-content: center;
+            background: var(--bg-surface); display: flex; align-items: center; justify-content: center;
             box-shadow: var(--sh-xs);
         }
         .s-label { font-size: 14px; color: var(--ink); font-weight: 600; }
         .s-val   { font-size: 14px; color: var(--blue); font-weight: 700; }
         .s-arr   { color: #CDD0DC; font-size: 16px; margin-left: 4px; }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            display: inline-flex; width: 50px; height: 30px;
+            background: #DDD; border-radius: 15px; position: relative;
+            cursor: pointer; transition: background 0.3s ease;
+            padding: 2px; box-sizing: border-box;
+        }
+        .toggle-switch.active { background: #3B5BDB; }
+        .toggle-switch .toggle-knob {
+            width: 26px; height: 26px; background: white;
+            border-radius: 50%; position: absolute; top: 2px; left: 2px;
+            transition: left 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active .toggle-knob { left: calc(100% - 28px); }
+
         .btn-danger {
             width: calc(100% - 40px); margin: 0 20px 16px;
-            background: #fff; color: #FF3B30; border: none;
+            background: #FFFFFF; color: #FF3B30; border: none;
             border-radius: 18px; padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer;
             box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255,255,255,0.8);
             transition: transform 0.14s ease, background 0.14s ease;
         }
-        .btn-danger:hover  { background: #FFF5F5; }
+        .btn-danger:hover  { background: var(--bg-hover); }
         .btn-danger:active { transform: scale(0.98); }
 
         /* ── MODALS ─────────────────────────── */
@@ -350,7 +409,7 @@
         @keyframes bgFade { from { opacity: 0; } to { opacity: 1; } }
         .modal-bg.hidden { display: none; }
         .modal-sheet {
-            background: #fff; border-radius: 30px 30px 44px 44px; width: 100%; max-width: 375px;
+            background: #FFFFFF; border-radius: 30px 30px 44px 44px; width: 100%; max-width: 375px;
             padding: 12px 22px 30px;
             box-shadow: 0 -10px 40px rgba(10,11,25,0.25);
             animation: slideUp 0.4s cubic-bezier(0.34,1.4,0.64,1);
@@ -360,7 +419,7 @@
         .modal-title  { font-size: 18px; font-weight: 800; color: var(--ink); text-align: center; margin-bottom: 20px; letter-spacing: -0.3px; }
         .big-input {
             width: 100%; font-size: 40px; font-weight: 800; text-align: center; border: none;
-            background: #F4F5FA; border-radius: 18px; padding: 18px; color: var(--blue); outline: none;
+            background: var(--bg-input); border-radius: 18px; padding: 18px; color: var(--blue); outline: none;
             margin-bottom: 18px; box-shadow: inset 0 2px 5px rgba(20,21,42,0.06);
             transition: box-shadow 0.18s ease;
         }
@@ -377,20 +436,20 @@
         /* ── Time Picker (custom) ───────────── */
         .time-picker {
             display: flex; align-items: center; justify-content: center; gap: 6px;
-            background: #F4F5FA; border-radius: 22px; padding: 16px 12px; margin-bottom: 16px;
+            background: var(--bg-input); border-radius: 22px; padding: 16px 12px; margin-bottom: 16px;
             box-shadow: inset 0 2px 6px rgba(20,21,42,0.06);
         }
         .tp-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .tp-step {
             width: 56px; height: 34px; border: none; cursor: pointer;
-            background: #fff; color: var(--blue); font-size: 14px; border-radius: 12px;
+            background: #FFFFFF; color: var(--blue); font-size: 14px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: var(--sh-xs), inset 0 1px 0 rgba(255,255,255,0.8);
             transition: transform 0.1s ease, background 0.12s ease, box-shadow 0.12s ease;
             -webkit-user-select: none; user-select: none;
         }
-        .tp-step:hover  { background: #EDF0FB; box-shadow: var(--sh-sm); }
-        .tp-step:active { transform: scale(0.9); background: #E3E8FA; }
+        .tp-step:hover  { background: var(--bg-hover); box-shadow: var(--sh-sm); }
+        .tp-step:active { transform: scale(0.9); background: var(--bg-hover); }
         .tp-val {
             font-size: 46px; font-weight: 800; color: var(--blue); letter-spacing: -1px;
             line-height: 1; min-width: 70px; text-align: center; font-variant-numeric: tabular-nums;
@@ -401,11 +460,11 @@
         .tp-colon { font-size: 40px; font-weight: 800; color: var(--blue); opacity: 0.45; padding-bottom: 22px; }
         .tp-quick { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
         .tp-chip {
-            border: none; cursor: pointer; background: #F2F3F9; color: #5C6270;
+            border: none; cursor: pointer; background: var(--bg-surface); color: #5C6270;
             font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 20px;
             box-shadow: var(--sh-xs); transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
         }
-        .tp-chip:hover  { background: #E9EBF4; }
+        .tp-chip:hover  { background: var(--bg-hover); }
         .tp-chip:active { transform: scale(0.94); }
         .tp-chip.active { background: linear-gradient(135deg, #5C7CFA, #3B5BDB); color: #fff; box-shadow: var(--sh-blue); }
         .tp-note {
@@ -418,7 +477,7 @@
         .reg-modal-times {
             display: flex; align-items: center; justify-content: center;
             gap: 12px; margin: 8px 0 18px;
-            background: #F7F8FC; border-radius: 18px; padding: 16px 8px;
+            background: var(--bg-input); border-radius: 18px; padding: 16px 8px;
             box-shadow: inset 0 1px 3px rgba(20,21,42,0.05);
         }
         .reg-time-block { text-align: center; flex: 1; }
@@ -450,9 +509,188 @@
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── MOBILE: a tutto schermo sul telefono reale ───── */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+                background: #EEF0F6;
+                align-items: stretch;
+                justify-content: stretch;
+            }
+            .phone-frame {
+                width: 100%;
+                height: 100vh;        /* fallback */
+                height: 100dvh;       /* segue la barra del browser mobile */
+                border-radius: 0;
+                padding: 0;
+                box-shadow: none;
+                background: none;
+            }
+            .phone-inner {
+                border-radius: 0;
+                box-shadow: none;
+                /* spazio per notch / status bar di sistema */
+                padding-top: env(safe-area-inset-top);
+            }
+            /* la barra "9:41" finta non serve: il telefono ha la sua */
+            .status-bar { display: none; }
+            .bottom-nav {
+                /* rispetta la barra gesti / home indicator in basso */
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+            /* le modali a comparsa tengono conto della barra in basso */
+            .modal-sheet {
+                padding-bottom: calc(30px + env(safe-area-inset-bottom));
+            }
+            .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
+        }
+
+        /* ── LOGIN SCREEN ─────────────────────── */
+        .login-screen { position: absolute; inset: 0; background: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 500; padding: 20px; }
+        .login-screen.active { display: flex; }
+        .login-logo { font-size: 48px; margin-bottom: 24px; }
+        .login-title { font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 8px; text-align: center; }
+        .login-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 32px; text-align: center; }
+        .login-form { width: 100%; max-width: 320px; }
+        .login-input { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
+        .login-input:focus { outline: none; border-color: var(--blue); box-shadow: inset 0 0 0 2px rgba(59,91,219,0.1); }
+        .login-btn { width: 100%; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+        .login-btn:hover { background: var(--blue-2); }
+        .login-toggle { text-align: center; font-size: 13px; color: var(--muted); }
+        .login-toggle a { color: var(--blue); cursor: pointer; text-decoration: none; }
+        .login-error { color: #FF3B30; font-size: 12px; margin-bottom: 12px; text-align: center; }
+
+        /* ── DARK MODE CARD OVERRIDES ─────────────── */
+        body.dark-mode .today-home-card,
+        body.dark-mode .entries-card,
+        body.dark-mode .cal-card,
+        body.dark-mode .cal-summary-card,
+        body.dark-mode .crono-row,
+        body.dark-mode .settings-card,
+        body.dark-mode .modal-sheet,
+        body.dark-mode .btn-danger {
+            background-color: #252540 !important;
+        }
+
+        body.dark-mode .today-time-row,
+        body.dark-mode .time-picker,
+        body.dark-mode .reg-modal-times,
+        body.dark-mode .cal-nav-btn,
+        body.dark-mode .s-icon,
+        body.dark-mode .tp-step,
+        body.dark-mode .tp-chip {
+            background-color: #3a3a54 !important;
+        }
+
+        body.dark-mode .big-input {
+            background-color: #2a2a40 !important;
+        }
+
+        /* Card verde "straordinario" → verde scuro tenue */
+        body.dark-mode .today-ot-row,
+        body.dark-mode .reg-ot-pill {
+            background: linear-gradient(135deg, #14311f, #103724) !important;
+            box-shadow: inset 0 0 0 1px rgba(81,207,102,0.20) !important;
+        }
+        body.dark-mode .today-ot-row.saturday,
+        body.dark-mode .reg-ot-pill.saturday {
+            background: linear-gradient(135deg, #3a2a12, #33260f) !important;
+            box-shadow: inset 0 0 0 1px rgba(255,169,77,0.22) !important;
+        }
+        /* Etichette dentro le card colorate */
+        body.dark-mode .today-ot-lbl,
+        body.dark-mode .reg-ot-l,
+        body.dark-mode .today-time-l,
+        body.dark-mode .reg-time-l,
+        body.dark-mode .tp-chip {
+            color: #B4B7C8 !important;
+        }
+
+        /* Icone verdi/arancioni/blu → tinte scure */
+        body.dark-mode .entry-icon-wrap,
+        body.dark-mode .crono-icon {
+            background: linear-gradient(135deg, #14311f, #103724) !important;
+        }
+        body.dark-mode .entry-icon-wrap.saturday,
+        body.dark-mode .crono-icon.saturday {
+            background: linear-gradient(135deg, #3a2a12, #33260f) !important;
+        }
+        body.dark-mode .entry-icon-wrap.pending {
+            background: linear-gradient(135deg, #1a2547, #16203d) !important;
+        }
+
+        /* Pulsante elimina cronologia */
+        body.dark-mode .crono-del {
+            background: rgba(255,59,48,0.18) !important;
+        }
+
+        /* Numeri e celle del calendario */
+        body.dark-mode .cal-day-n { color: #C4C6D4 !important; }
+        body.dark-mode .cal-day.weekend .cal-day-n { color: #7C7F94 !important; }
+        body.dark-mode .cal-day.future .cal-day-n { color: #5A5D72 !important; }
+        body.dark-mode .cal-day.today {
+            background: rgba(59,91,219,0.30) !important;
+            box-shadow: inset 0 0 0 1.5px var(--blue-2) !important;
+        }
+        body.dark-mode .cal-day.today .cal-day-n { color: #A9C0FF !important; }
+        body.dark-mode .cal-day.has-data {
+            background: linear-gradient(135deg, #14311f, #103724) !important;
+        }
+        body.dark-mode .cal-day.has-sat {
+            background: linear-gradient(135deg, #3a2a12, #33260f) !important;
+        }
+
+        /* Campanella home */
+        body.dark-mode .bell-btn { box-shadow: var(--sh-sm) !important; }
+        body.dark-mode .bell-dot { border-color: #252540 !important; }
+
+        /* Stato "vuoto" orari (—) leggermente più chiaro del testo pieno */
+        body.dark-mode .today-time-v.muted,
+        body.dark-mode .reg-time-v.muted { color: #6A6D82 !important; }
+
+        /* Handle modale */
+        body.dark-mode .modal-handle { background: #3a3a54 !important; }
+
+        /* Schermata di login in dark mode */
+        body.dark-mode .login-screen {
+            background: radial-gradient(circle at 50% -5%, #1a1a2e 0%, #16213e 40%, #0f3460 100%) !important;
+        }
+        body.dark-mode .login-input {
+            background: #2a2a40 !important;
+            color: #E8E8F0 !important;
+            border-color: rgba(232,232,240,0.15) !important;
+        }
+        body.dark-mode .login-input::placeholder { color: #8A8DA5 !important; }
+
+        /* Nota sabato (fascia crema) */
+        body.dark-mode .tp-note {
+            background: rgba(255,169,77,0.12) !important;
+            color: #E0B588 !important;
+        }
     </style>
+
+    <!-- TweetNaCl.js for password hashing (lighter than bcryptjs) -->
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
 </head>
 <body>
+
+<!-- Login Screen -->
+<div class="login-screen active" id="loginScreen">
+  <div class="login-logo">⏱️</div>
+  <div class="login-title" id="loginTitle">Accedi</div>
+  <div class="login-subtitle">Straordinari</div>
+  <div id="loginError" class="login-error"></div>
+  <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+    <input type="text" id="loginUsername" class="login-input" placeholder="Nome utente" required>
+    <input type="password" id="loginPassword" class="login-input" placeholder="Password" required>
+    <button type="submit" class="login-btn" id="loginBtn">Accedi</button>
+  </form>
+  <div class="login-toggle">
+    Non hai un account? <a onclick="toggleLoginMode()">Registrati</a>
+  </div>
+</div>
+
 <div class="phone-frame">
   <div class="phone-inner">
     <div class="status-bar">
@@ -466,7 +704,7 @@
       <div class="tab-panel active" id="tab-home">
         <div class="home-header">
           <div class="home-greeting">
-            <h1>Ciao, Paolo 👋</h1>
+            <h1 id="homeGreeting">Ciao 👋</h1>
             <p>Ecco il riepilogo dei tuoi straordinari</p>
           </div>
           <button class="bell-btn">🔔<div class="bell-dot"></div></button>
@@ -555,10 +793,22 @@
         <div class="page-header"><h2>Profilo</h2></div>
         <div class="settings-card" style="margin:0 20px 14px;">
           <div class="card-lbl" style="padding:15px 18px 0;">Impostazioni</div>
+          <div class="settings-row" onclick="openNameModal()">
+            <div class="s-left"><span class="s-icon">👤</span><span class="s-label">Nome</span></div>
+            <div style="display:flex;align-items:center;">
+              <span class="s-val" id="profName">—</span><span class="s-arr">›</span>
+            </div>
+          </div>
           <div class="settings-row" onclick="openEntryModal()">
             <div class="s-left"><span class="s-icon">🕐</span><span class="s-label">Orario ingresso</span></div>
             <div style="display:flex;align-items:center;">
               <span class="s-val" id="profEntryTime">07:45</span><span class="s-arr">›</span>
+            </div>
+          </div>
+          <div class="settings-row" onclick="openWorkHoursModal()">
+            <div class="s-left"><span class="s-icon">⏰</span><span class="s-label">Ore giornaliere</span></div>
+            <div style="display:flex;align-items:center;">
+              <span class="s-val" id="profWorkHours">—</span><span class="s-arr">›</span>
             </div>
           </div>
           <div class="settings-row" onclick="showModal('limitModal')">
@@ -567,8 +817,15 @@
               <span class="s-val"><span id="profLimit">25</span>h</span><span class="s-arr">›</span>
             </div>
           </div>
+          <div class="settings-row">
+            <div class="s-left"><span class="s-icon">🌙</span><span class="s-label">Modalità scura</span></div>
+            <div class="toggle-switch" id="darkModeToggle" onclick="toggleDarkMode()">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
         </div>
         <button class="btn-danger" onclick="confirmReset()">🗑️  Reset tutti i dati</button>
+        <button class="btn-danger" onclick="logout()" style="margin-top:12px;">🚪 Esci dall'account</button>
       </div>
 
     </div><!-- /tab-content -->
@@ -653,6 +910,17 @@
   </div>
 </div>
 
+<!-- Modal: nome utente (primo avvio / modifica) -->
+<div class="modal-bg hidden" id="nameModal">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Come ti chiami?</div>
+    <p style="text-align:center; color:var(--muted); margin-bottom:18px; font-size:14px;">Il nome resta solo su questo dispositivo.</p>
+    <input type="text" class="big-input" id="nameInput" placeholder="Nome" style="font-size:26px;" autocomplete="off" maxlength="20">
+    <button class="btn-primary" onclick="saveName()">Continua</button>
+  </div>
+</div>
+
 <!-- Modal: ore lavoro giornaliere -->
 <div class="modal-bg hidden" id="workHoursModal" onclick="closeModal('workHoursModal')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
@@ -667,10 +935,252 @@
   </div>
 </div>
 
+<!-- Modal: Inserimento manuale orari -->
+<div class="modal-bg hidden" id="manualEntryModal" onclick="closeModal('manualEntryModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="manualEntryTitle">Aggiungi Orari</div>
+    <div class="reg-modal-times">
+      <div class="reg-time-block">
+        <div class="reg-time-l">Ingresso</div>
+        <div class="reg-time-v" id="manualEntryIn">07:45</div>
+      </div>
+      <div class="reg-sep">→</div>
+      <div class="reg-time-block">
+        <div class="reg-time-l">Uscita</div>
+        <div class="reg-time-v muted" id="manualEntryOut">--:--</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; margin-bottom:18px;">
+      <div style="flex:1;">
+        <label style="font-size:11px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px;">Ingresso</label>
+        <input type="time" id="manualInTime" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:12px; font-size:14px;" />
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:11px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px;">Uscita</label>
+        <input type="time" id="manualOutTime" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:12px; font-size:14px;" />
+      </div>
+    </div>
+    <div class="reg-ot-pill" id="manualOtPill" style="display:none;">
+      <div class="reg-ot-l">Straordinario calcolato</div>
+      <div class="reg-ot-v" id="manualOtVal">0h 00m</div>
+    </div>
+    <button class="btn-primary" onclick="saveManualEntry()">Salva</button>
+  </div>
+</div>
+
   </div><!-- /phone-inner -->
 </div><!-- /phone-frame -->
 
 <script>
+/* ── BACKEND API ─────────────────────── */
+const API_URL = 'http://localhost:3001/api';
+
+let currentUser = null;
+let isRegistering = false;
+
+/* ── AUTHENTICATION ────────────────────── */
+async function handleLogin(event) {
+  event.preventDefault();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  errorEl.textContent = '';
+
+  if (!username || !password) {
+    errorEl.textContent = 'Compila tutti i campi';
+    return;
+  }
+
+  try {
+    if (isRegistering) {
+      await registerUser(username, password);
+    } else {
+      await loginUser(username, password);
+    }
+  } catch (error) {
+    errorEl.textContent = error.message;
+  }
+}
+
+async function registerUser(username, password) {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || 'Errore nella registrazione');
+  }
+
+  currentUser = username;
+  await loadUserData();
+  showApp();
+}
+
+let loginData = null;
+
+async function loginUser(username, password) {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || 'Errore nel login');
+  }
+
+  currentUser = username;
+  loginData = result.data;  // Salva i dati per caricarli dopo initializeApp()
+  showApp();
+}
+
+async function loadUserData() {
+  // Dati già caricati nel login
+}
+
+async function saveUserData() {
+  if (!currentUser) return;
+
+  const response = await fetch(`${API_URL}/users/${currentUser}/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      entries: tracker.entries,
+      entryTime: tracker.entryTime,
+      workHours: tracker.workHours,
+      limit: tracker.limit,
+      name: tracker.name
+    })
+  });
+
+  if (!response.ok) {
+    console.error('Errore nel salvataggio:', await response.json());
+  }
+}
+
+function toggleLoginMode() {
+  isRegistering = !isRegistering;
+  document.getElementById('loginTitle').textContent = isRegistering ? 'Registrati' : 'Accedi';
+  document.getElementById('loginBtn').textContent = isRegistering ? 'Registrati' : 'Accedi';
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').textContent = '';
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.remove('active');
+  initializeApp();
+
+  // Se abbiamo dati dal login, caricali nel tracker
+  if (loginData && tracker) {
+    tracker.entries = loginData.entries || [];
+    tracker.entryTime = loginData.entryTime || '07:45';
+    tracker.workHours = parseFloat(loginData.workHours || 0);
+    tracker.limit = parseInt(loginData.limit || 25);
+    tracker.name = loginData.name || '';
+    tracker.updateAll();
+    loginData = null;
+  }
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('loginForm').reset();
+  isRegistering = false;
+  document.getElementById('loginTitle').textContent = 'Accedi';
+  document.getElementById('loginBtn').textContent = 'Accedi';
+}
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  const inner = document.querySelector('.phone-inner');
+  const statusBar = document.querySelector('.status-bar');
+  const nav = document.querySelector('.bottom-nav');
+
+  if (isDark) {
+    inner.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)';
+    inner.style.color = '#E8E8F0';
+    if (statusBar) statusBar.style.color = '#E8E8F0';
+    if (nav) {
+      nav.style.background = 'rgba(26, 26, 46, 0.95)';
+      nav.style.borderTopColor = 'rgba(232, 232, 240, 0.1)';
+    }
+  } else {
+    inner.style.background = 'radial-gradient(circle at 50% -5%, #FFFFFF 0%, #F4F5FA 30%, #EEF0F6 100%)';
+    inner.style.color = '#14152A';
+    if (statusBar) statusBar.style.color = '#14152A';
+    if (nav) {
+      nav.style.background = 'rgba(255, 255, 255, 0.82)';
+      nav.style.borderTopColor = 'rgba(20, 21, 42, 0.07)';
+    }
+  }
+
+  // Applica dark mode a tutti i testi
+  document.querySelectorAll('[id*="prof"], [id*="reg"], [id*="cal"]').forEach(el => {
+    if (isDark) {
+      el.style.color = '#E8E8F0';
+    } else {
+      el.style.color = '#14152A';
+    }
+  });
+
+  localStorage.setItem('darkMode', isDark ? 'on' : 'off');
+  updateDarkModeLabel();
+}
+
+function updateDarkModeLabel() {
+  const isDark = document.body.classList.contains('dark-mode');
+  const toggle = document.getElementById('darkModeToggle');
+  if (toggle) {
+    if (isDark) {
+      toggle.classList.add('active');
+    } else {
+      toggle.classList.remove('active');
+    }
+  }
+}
+
+function initDarkMode() {
+  const saved = localStorage.getItem('darkMode');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  if (saved === 'on' || (saved === null && prefersDark)) {
+    document.body.classList.add('dark-mode');
+    // Applica inline styles per dark mode al caricamento
+    const inner = document.querySelector('.phone-inner');
+    if (inner) {
+      inner.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)';
+      inner.style.color = '#E8E8F0';
+    }
+    const nav = document.querySelector('.bottom-nav');
+    if (nav) {
+      nav.style.background = 'rgba(26, 26, 46, 0.95)';
+      nav.style.borderTopColor = 'rgba(232, 232, 240, 0.1)';
+    }
+    const statusBar = document.querySelector('.status-bar');
+    if (statusBar) statusBar.style.color = '#E8E8F0';
+    // Applica dark mode alle card
+    document.querySelectorAll('.today-home-card, .entries-card, .cal-card, .cal-summary-card, .crono-row, .settings-card, .modal-sheet, .btn-danger').forEach(el => {
+      el.style.backgroundColor = '#252540';
+    });
+    // Applica dark mode ai surface elements
+    document.querySelectorAll('.today-time-row, .time-picker, .reg-modal-times, .cal-nav-btn, .s-icon, .tp-step, .tp-chip').forEach(el => {
+      el.style.backgroundColor = '#3a3a54';
+    });
+    // Applica dark mode ai input
+    document.querySelectorAll('.big-input').forEach(el => {
+      el.style.backgroundColor = '#2a2a40';
+    });
+  }
+  updateDarkModeLabel();
+}
+
 const TABS = ['home','calendario','cronologia','profilo'];
 
 function switchTab(name) {
@@ -689,6 +1199,23 @@ function showModal(id) { document.getElementById(id).classList.remove('hidden');
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 function openRegisterModal() {
+  const inCalendar = document.getElementById('tab-calendario').classList.contains('active');
+  if (tracker.selectedDate && inCalendar) {
+    openManualEntryModal(tracker.selectedDate);
+    return;
+  }
+
+  const today = tracker.today();
+
+if (tracker.isSun(today) || tracker.isHoliday(today)) {
+  showToast(
+    tracker.isHoliday(today)
+      ? '🎉 Oggi è un giorno festivo'
+      : '😴 Oggi è domenica: giorno di riposo'
+  );
+  return;
+}
+
   tracker.refreshRegisterModal();
   showModal('registerModal');
 }
@@ -735,10 +1262,15 @@ function adjustTime(unit, dir) {
 }
 
 function openEntryModal() {
+  console.log('openEntryModal called');
   const [h,m] = tracker.entryTime.split(':').map(Number);
   pickH = h; pickM = m;
   renderPicker();
-  showModal('entryModal');
+  if (document.getElementById('entryModal')) {
+    showModal('entryModal');
+  } else {
+    console.error('entryModal element not found');
+  }
 }
 
 // Hold-to-repeat sui pulsanti freccia
@@ -786,6 +1318,34 @@ function confirmReset() {
   }
 }
 
+function openNameModal() {
+  console.log('openNameModal called');
+  const nameInput = document.getElementById('nameInput');
+  if (nameInput) {
+    nameInput.value = tracker.name || '';
+    showModal('nameModal');
+    setTimeout(() => nameInput.focus(), 250);
+  } else {
+    console.error('nameInput element not found');
+  }
+}
+
+function saveName() {
+  const v = document.getElementById('nameInput').value.trim();
+  if (!v) return;
+  tracker.name = v;
+  localStorage.setItem('s_name', v);
+  tracker.updateGreeting();
+  tracker.updateProfilo();
+  closeModal('nameModal');
+  // Primo avvio: dopo il nome chiedi le ore di lavoro se non impostate
+  if (!tracker.workHours) {
+    showModal('workHoursModal');
+  } else {
+    showToast('✓ Nome aggiornato');
+  }
+}
+
 let selectedWorkHours = 0;
 function setWorkHours(hours) {
   selectedWorkHours = hours;
@@ -794,14 +1354,125 @@ function setWorkHours(hours) {
   document.getElementById('workHoursSaveBtn').disabled = false;
 }
 
+function openWorkHoursModal() {
+  const wh = tracker.workHours || 0;
+  if (wh === 6) {
+    setWorkHours(6);
+  } else if (wh) {
+    setWorkHours(7.33);
+  } else {
+    selectedWorkHours = 0;
+    document.getElementById('btn-6h').classList.remove('active');
+    document.getElementById('btn-7h20').classList.remove('active');
+    document.getElementById('workHoursSaveBtn').disabled = true;
+  }
+  showModal('workHoursModal');
+}
+
 function saveWorkHours() {
   if (!selectedWorkHours) return;
   tracker.workHours = selectedWorkHours;
   localStorage.setItem('s_workHours', selectedWorkHours);
+  tracker.recalcAll();
   closeModal('workHoursModal');
   tracker.updateAll();
   showToast('✓ Ore di lavoro salvate');
 }
+
+/* ── Inserimento manuale orari ─────────────────────── */
+let manualDate = null;
+
+function openManualEntryModal(date) {
+  manualDate = date;
+  const d = new Date(date + 'T00:00:00');
+  const dLbl = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+  const dCap = dLbl[0].toUpperCase() + dLbl.slice(1);
+  document.getElementById('manualEntryTitle').textContent = dCap;
+
+  const e = tracker.entries.find(x => x.date === date);
+  if (e && e.in) {
+    const [h, m] = e.in.split(':').map(Number);
+    document.getElementById('manualInTime').value = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    document.getElementById('manualEntryIn').textContent = e.in;
+  } else {
+    const defaultEntry = tracker.entryFor(date);
+    const [h, m] = defaultEntry.split(':').map(Number);
+    document.getElementById('manualInTime').value = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    document.getElementById('manualEntryIn').textContent = defaultEntry;
+  }
+
+  if (e && e.out) {
+    const [h, m] = e.out.split(':').map(Number);
+    document.getElementById('manualOutTime').value = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    document.getElementById('manualEntryOut').textContent = e.out;
+    document.getElementById('manualEntryOut').classList.remove('muted');
+    updateManualOt();
+  } else {
+    document.getElementById('manualOutTime').value = '';
+    document.getElementById('manualEntryOut').textContent = '--:--';
+    document.getElementById('manualEntryOut').classList.add('muted');
+    document.getElementById('manualOtPill').style.display = 'none';
+  }
+
+  showModal('manualEntryModal');
+}
+
+function updateManualOt() {
+  const inVal = document.getElementById('manualInTime').value;
+  const outVal = document.getElementById('manualOutTime').value;
+  if (!inVal || !outVal) {
+    document.getElementById('manualOtPill').style.display = 'none';
+    return;
+  }
+  const ot = tracker.calcOT(outVal, manualDate);
+  document.getElementById('manualOtVal').textContent = tracker.fmt(ot);
+  document.getElementById('manualOtPill').style.display = 'block';
+}
+
+function saveManualEntry() {
+  const inVal = document.getElementById('manualInTime').value;
+  const outVal = document.getElementById('manualOutTime').value;
+  if (!inVal || !outVal) {
+    showToast('⚠️ Inserisci ingresso e uscita');
+    return;
+  }
+
+  let e = tracker.entries.find(x => x.date === manualDate);
+  if (!e) {
+    e = {date: manualDate, in: inVal, out: outVal, ot: 0};
+    tracker.entries.push(e);
+  } else {
+    e.in = inVal;
+    e.out = outVal;
+  }
+  e.ot = tracker.calcOT(outVal, manualDate);
+  tracker.save();
+  tracker.updateAll();
+  tracker.renderCalendar();
+  tracker.renderCrono();
+  tracker.selectedDate = null;
+  closeModal('manualEntryModal');
+  showToast('✓ Orari salvati');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inInput = document.getElementById('manualInTime');
+  const outInput = document.getElementById('manualOutTime');
+  if (inInput) inInput.addEventListener('change', () => {
+    const val = inInput.value;
+    if (val) document.getElementById('manualEntryIn').textContent = val;
+  });
+  if (outInput) {
+    outInput.addEventListener('change', () => {
+      const val = outInput.value;
+      if (val) {
+        document.getElementById('manualEntryOut').textContent = val;
+        document.getElementById('manualEntryOut').classList.remove('muted');
+      }
+      updateManualOt();
+    });
+  }
+});
 
 /* ── OvertimeTracker ─────────────────────────────── */
 class OvertimeTracker {
@@ -809,14 +1480,77 @@ class OvertimeTracker {
     this.entries   = JSON.parse(localStorage.getItem('s_data') || '[]');
     this.entryTime = localStorage.getItem('s_entry') || '07:45';
     this.limit     = parseInt(localStorage.getItem('s_limit') || '25');
-    this.workHours = parseInt(localStorage.getItem('s_workHours') || '0');
+    this.workHours = parseFloat(localStorage.getItem('s_workHours') || '0');
+    this.name      = localStorage.getItem('s_name') || '';
     this.calYear   = new Date().getFullYear();
     this.calMonth  = new Date().getMonth();
+    this.selectedDate = null;
   }
 
   today() { return new Date().toISOString().split('T')[0]; }
 
   isSat(date) { return new Date(date + 'T00:00:00').getDay() === 6; }
+  isSun(date) {return new Date(date + 'T00:00:00').getDay() === 0;}
+ isHoliday(date) {
+  const d = new Date(date + 'T00:00:00');
+
+  const day = d.getDate();
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+
+  // Festività fisse
+  const fixed = [
+    '1-1',
+    '6-1',
+    '25-4',
+    '1-5',
+    '2-6',
+    '15-8',
+    '1-11',
+    '8-12',
+    '25-12',
+    '26-12'
+  ];
+
+  if (fixed.includes(`${day}-${month}`)) {
+    return true;
+  }
+
+  // Calcolo Pasqua (algoritmo di Meeus)
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d1 = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d1 - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+
+  const easterMonth = Math.floor((h + l - 7 * m + 114) / 31);
+  const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
+
+  // Pasqua
+  if (day === easterDay && month === easterMonth) {
+    return true;
+  }
+
+  // Pasquetta
+  const easter = new Date(year, easterMonth - 1, easterDay);
+  easter.setDate(easter.getDate() + 1);
+
+  if (
+    day === easter.getDate() &&
+    month === easter.getMonth() + 1
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
   nowStr() {
     const n = new Date();
@@ -854,7 +1588,18 @@ class OvertimeTracker {
   }
 
   registerExit() {
-    const d = this.today(), t = this.nowStr();
+    const d = this.today();
+
+if (this.isSun(d) || this.isHoliday(d)) {
+  showToast(
+    this.isHoliday(d)
+      ? '🎉 Oggi è un giorno festivo'
+      : '🚫 La domenica non si lavora'
+  );
+  return;
+}
+
+const t = this.nowStr();
     let e = this.entries.find(x => x.date === d);
     if (!e) { e = {date:d, in:this.entryFor(d), out:null, ot:0}; this.entries.push(e); }
     e.out = t; e.in = this.entryFor(d); e.ot = this.calcOT(t, d);
@@ -868,6 +1613,13 @@ class OvertimeTracker {
   recalcToday() {
     const e = this.entries.find(x => x.date === this.today());
     if (e && e.out) { e.in = this.entryFor(e.date); e.ot = this.calcOT(e.out, e.date); this.save(); }
+  }
+
+  recalcAll() {
+    this.entries.forEach(e => {
+      if (e.out) { e.in = this.entryFor(e.date); e.ot = this.calcOT(e.out, e.date); }
+    });
+    this.save();
   }
 
   deleteEntry(date) {
@@ -913,7 +1665,13 @@ class OvertimeTracker {
   }
 
   /* ─ Home ─ */
+  updateGreeting() {
+    const el = document.getElementById('homeGreeting');
+    if (el) el.textContent = 'Ciao' + (this.name ? ', ' + this.name : '') + ' 👋';
+  }
+
   updateHome() {
+    this.updateGreeting();
     const now   = new Date();
     const total = this.monthTotal(now.getFullYear(), now.getMonth());
     const pct   = Math.min(100, Math.round((total / this.limit) * 100));
@@ -928,14 +1686,39 @@ class OvertimeTracker {
 
     // Card oggi
     const d   = this.today();
-    const sat = this.isSat(d);
-    const e   = this.entries.find(x => x.date === d);
+const sat = this.isSat(d);
+const sun = this.isSun(d);
+const holiday = this.isHoliday(d);
+const e   = this.entries.find(x => x.date === d);
     const dateLabel = now.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
 
     document.getElementById('homeTodayDate').textContent    = dateLabel;
     document.getElementById('homeTodayEntry').textContent   = this.entryFor(d);
     document.getElementById('homeTodayOtRow').className     = 'today-ot-row' + (sat ? ' saturday' : '');
     document.getElementById('homeTodayOtVal').className     = 'today-ot-val' + (sat ? ' saturday' : '');
+    if (sun || holiday) {
+  document.getElementById('homeTodayEntry').textContent = '--:--';
+  document.getElementById('homeTodayExit').textContent = '--:--';
+  document.getElementById('homeTodayOtLbl').textContent =
+    holiday ? 'Festivo' : 'Domenica';
+
+document.getElementById('homeTodayOtVal').textContent =
+    holiday ? '🎉 Festivo' : 'Riposo';
+
+  const btn = document.getElementById('homeTodayBtn');
+ btn.textContent =
+    holiday ? 'Giorno festivo' : 'Giorno di riposo';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor = 'default';
+
+  return;
+} else {
+  const btn = document.getElementById('homeTodayBtn');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+}
 
     if (e && e.out) {
       document.getElementById('homeTodayExit').textContent  = e.out;
@@ -990,11 +1773,20 @@ class OvertimeTracker {
 
   /* ─ Profilo ─ */
   updateProfilo() {
+    document.getElementById('profName').textContent      = this.name || '—';
     document.getElementById('profEntryTime').textContent = this.entryTime;
     document.getElementById('profLimit').textContent     = this.limit;
+    document.getElementById('profWorkHours').textContent =
+      this.workHours === 6 ? '6 ore' : (this.workHours ? '7:20' : '—');
   }
 
   /* ─ Calendario ─ */
+  selectDate(date) {
+    if (date > this.today()) return;
+    this.selectedDate = this.selectedDate === date ? null : date;
+    this.renderCalendar();
+  }
+
   prevMonth() { this.calMonth===0 ? (this.calMonth=11,this.calYear--) : this.calMonth--; this.renderCalendar(); }
   nextMonth() { this.calMonth===11? (this.calMonth=0, this.calYear++) : this.calMonth++; this.renderCalendar(); }
 
@@ -1028,14 +1820,18 @@ class OvertimeTracker {
       const hasD= !!eMap[ds];
       const isSat = wd === 6;
       const isW = wd === 0 || wd === 6;
+      const isSel = ds === this.selectedDate;
+      const isFuture = ds > today;
 
       let cls = 'cal-day';
-      if (isT) cls += ' today';
-      if (hasD) cls += isSat ? ' has-sat' : ' has-data';
+      if (isSel) cls += ' selected';
+      else if (isT) cls += ' today';
+      else if (hasD) cls += isSat ? ' has-sat' : ' has-data';
       else if (isW) cls += ' weekend';
+      if (isFuture) cls += ' future';
 
       const hDiv = hasD ? `<div class="cal-day-h">${this.fmt(eMap[ds].ot||0)}</div>` : '';
-      html += `<div class="${cls}"><div class="cal-day-n">${d}</div>${hDiv}</div>`;
+      html += `<div class="${cls}" onclick="tracker.selectDate('${ds}')" data-date="${ds}"><div class="cal-day-n">${d}</div>${hDiv}</div>`;
     }
 
     document.getElementById('calGrid').innerHTML = html;
@@ -1095,15 +1891,44 @@ class OvertimeTracker {
 }
 
 /* ── Boot ─────────────────────────────────────── */
-const tracker = new OvertimeTracker();
-document.getElementById('limitInput').value     = tracker.limit;
-tracker.updateAll();
-tracker.renderCalendar();
+let tracker = null;
 
-// Mostra il modal delle ore di lavoro al primo accesso
-if (!tracker.workHours) {
-  showModal('workHoursModal');
+// Aspetta che Firebase sia pronto, poi mostra il login
+setTimeout(() => {
+  document.getElementById('loginScreen').classList.add('active');
+  initDarkMode();
+}, 100);
+
+// Modifica il tracker per salvare su Firebase
+const originalTracker = OvertimeTracker;
+OvertimeTracker.prototype.save = function() {
+  localStorage.setItem('s_data', JSON.stringify(this.entries));
+  if (currentUser) saveUserData();
+};
+
+// Quando l'utente si autentica
+function initializeApp() {
+  if (!tracker) {
+    tracker = new OvertimeTracker();
+  }
+  document.getElementById('limitInput').value = tracker.limit;
+  tracker.updateAll();
+  tracker.renderCalendar();
+
+  if (!tracker.name) {
+    openNameModal();
+  } else if (!tracker.workHours) {
+    showModal('workHoursModal');
+  }
 }
+
+// Registra il Service Worker per PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => {
+    console.log('Service Worker registration failed:', err);
+  });
+}
+// v2: aggiunto feature di selezione giorni nel calendario
 </script>
 </body>
 </html>
