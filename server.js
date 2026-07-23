@@ -17,9 +17,17 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize Firebase Admin
-const keyPath = `${__dirname}/firebase-key.json`;
-console.log('Loading Firebase key from:', keyPath);
-const serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+// In produzione (Render) la chiave arriva dalla variabile d'ambiente FIREBASE_KEY
+// (contenuto JSON del service account). In locale, fallback al file firebase-key.json.
+let serviceAccount;
+if (process.env.FIREBASE_KEY) {
+  console.log('Loading Firebase key from env var FIREBASE_KEY');
+  serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
+} else {
+  const keyPath = `${__dirname}/firebase-key.json`;
+  console.log('Loading Firebase key from file:', keyPath);
+  serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+}
 console.log('Firebase key loaded successfully');
 
 admin.initializeApp({
